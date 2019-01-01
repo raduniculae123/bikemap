@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -14,16 +15,23 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.nio.BufferUnderflowException;
 
@@ -38,17 +46,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     static {
         System.loadLibrary("native-lib");
     }
-
+    private Button button;
     private static final String TAG = "MainActivity";
     private boolean mLocationPermissionGranted = false;
     private MapView mMapView;
+    private FusedLocationProviderClient mFusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initGoogleMap(savedInstanceState);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+    }
+    private double latitude,longitude;
+    private void getLastKnownLocation() {
+        Log.d(TAG, "getLastKnownLocation: called.");
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
+        mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                if(task.isSuccessful()){
+                    Location location = task.getResult();
+                    GeoPoint geoPointpoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                    latitude=location.getLatitude();
+                    longitude=location.getLongitude();
+                }
+            }
+        });
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
     }
 
     private void initGoogleMap(Bundle savedInstanceState) {
@@ -194,6 +232,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onStart() {
         super.onStart();
         mMapView.onStart();
+        button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openActivity2();
+            }
+        });
+    }
+
+
+    public void openActivity2(){
+        Intent intent = new Intent(this, testactivity2.class);
+        startActivity(intent);
+
     }
 
     @Override
@@ -201,6 +253,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onStop();
         mMapView.onStop();
     }
+
+
 
     @Override
     public void onMapReady(GoogleMap map) {
