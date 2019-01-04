@@ -12,9 +12,13 @@ import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -42,15 +46,14 @@ import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-    }
     private Button button;
     private static final String TAG = "MainActivity";
     private boolean mLocationPermissionGranted = false;
     private MapView mMapView;
     private FusedLocationProviderClient mFusedLocationClient;
+
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +62,37 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         initGoogleMap(savedInstanceState);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
+        mDrawerLayout.addDrawerListener(mToggle);
+        mToggle.syncState();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.navigation_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id=item.getItemId();
+
+        if(mToggle.onOptionsItemSelected(item)){
+            return true;
+        }
+        if(id==R.id.nav_settings){
+            Intent intent1 = new Intent(this, SettingsActivity.class);
+            this.startActivity(intent1);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     private double latitude,longitude;
     private void getLastKnownLocation() {
         Log.d(TAG, "getLastKnownLocation: called.");
