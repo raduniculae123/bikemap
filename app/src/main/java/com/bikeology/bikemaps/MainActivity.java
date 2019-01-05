@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +24,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.support.design.widget.NavigationView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -44,7 +46,7 @@ import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_L
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
 
     private Button button;
     private static final String TAG = "MainActivity";
@@ -61,6 +63,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         initGoogleMap(savedInstanceState);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        setNavigationViewListener();
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
@@ -79,18 +83,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        int id=item.getItemId();
-
         if(mToggle.onOptionsItemSelected(item)){
             return true;
         }
-        if(id==R.id.nav_settings){
-            Intent intent1 = new Intent(this, SettingsActivity.class);
-            this.startActivity(intent1);
-            return true;
-        }
+        int id=item.getItemId();
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setNavigationViewListener() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.navigationView);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+
+            case R.id.nav_settings: {
+                Intent intent1 = new Intent(this, SettingsActivity.class);
+                this.startActivity(intent1);
+                break;
+            }
+        }
+        //close navigation drawer
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 
     private double latitude,longitude;
@@ -319,10 +337,4 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onLowMemory();
         mMapView.onLowMemory();
     }
-
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
 }
