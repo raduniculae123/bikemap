@@ -46,7 +46,7 @@ import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_L
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private Button button;
     private static final String TAG = "MainActivity";
@@ -54,61 +54,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private MapView mMapView;
     private FusedLocationProviderClient mFusedLocationClient;
 
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mToggle;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setupDrawer();
+
         initGoogleMap(savedInstanceState);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        setNavigationViewListener();
-
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
-        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
-        mDrawerLayout.addDrawerListener(mToggle);
-        mToggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.navigation_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        if(mToggle.onOptionsItemSelected(item)){
-            return true;
-        }
-        int id=item.getItemId();
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void setNavigationViewListener() {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.navigationView);
-        navigationView.setNavigationItemSelectedListener(this);
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-
-            case R.id.nav_settings: {
-                Intent intent1 = new Intent(this, SettingsActivity.class);
-                this.startActivity(intent1);
-                break;
-            }
-        }
-        //close navigation drawer
-        mDrawerLayout.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     private double latitude,longitude;

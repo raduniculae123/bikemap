@@ -1,13 +1,15 @@
 <resources>
     <string name="google_maps_api_key">AIzaSyCtlSAJAB_8GfgjDysecgMog9CIKo0_mIY</string>
+
     <string name="app_name">Bike Maps</string>
+    <string name="settings_title">Settings</string>
     <string name="button_my_coordinates">MY COORDINATES</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
 
+    <string name="nav_map">Map</string>
     <string name="nav_myaccount">My Account</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_logout">Log Out</string>
-
     <string name="nav_header_title">Navigation header</string>
 </resources>

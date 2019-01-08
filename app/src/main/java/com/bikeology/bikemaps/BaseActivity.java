@@ -15,25 +15,17 @@ import android.view.MenuItem;
 
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mToggle;
+    protected DrawerLayout mDrawerLayout;
+    protected ActionBarDrawerToggle mToggle;
 
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
+    protected void setupDrawer(){
+        setNavigationViewListener();
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        super.onCreate(savedInstanceState, persistentState);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.navigation_menu, menu);
-        return true;
     }
 
     @Override
@@ -42,12 +34,10 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         if(mToggle.onOptionsItemSelected(item)){
             return true;
         }
-        int id=item.getItemId();
-
         return super.onOptionsItemSelected(item);
     }
 
-    private void setNavigationViewListener() {
+    protected void setNavigationViewListener() {
         NavigationView navigationView = (NavigationView) findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(this);
     }
@@ -57,8 +47,13 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         switch (item.getItemId()) {
 
             case R.id.nav_settings: {
-                Intent intent1 = new Intent(this, SettingsActivity.class);
-                this.startActivity(intent1);
+                Intent intent = new Intent(this, SettingsActivity.class);
+                this.startActivity(intent);
+                break;
+            }
+            case R.id.nav_map: {
+                Intent intent = new Intent(this, MainActivity.class);
+                this.startActivity(intent);
                 break;
             }
         }
