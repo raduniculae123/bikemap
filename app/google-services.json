@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "999577704262",
+    "firebase_url": "https://bikemaps-de02f.firebaseio.com",
+    "project_id": "bikemaps-de02f",
+    "storage_bucket": "bikemaps-de02f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999577704262:android:a187ebaadfaf0c5b",
+        "android_client_info": {
+          "package_name": "com.bikeology.bikemaps"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "999577704262-ogou6pf8nn9vml0p5080slpf9c6dia7l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bikeology.bikemaps",
+            "certificate_hash": "e55e585770675f78119eed42aef9befe57b7e70d"
+          }
+        },
+        {
+          "client_id": "999577704262-oa2ei1advu0f199v50ci0sn3e8eeo1vc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCldA815jg8ZVuP2l-45IUrDyIjRs7dLU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "999577704262-oa2ei1advu0f199v50ci0sn3e8eeo1vc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
