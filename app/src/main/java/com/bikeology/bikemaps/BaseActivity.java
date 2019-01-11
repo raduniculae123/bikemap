@@ -60,7 +60,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
                 break;
             }
             case R.id.nav_account: {
-                Intent intent = new Intent(this, LoginActivity.class);
+                Intent intent = new Intent(this, AccountActivity.class);
                 this.startActivity(intent);
                 break;
             }

@@ -1,4 +1,5 @@
 package com.bikeology.bikemaps.AccountActivity;
+
 import com.bikeology.bikemaps.BaseActivity;
 import com.bikeology.bikemaps.R;
 import android.support.v7.app.AppCompatActivity;
@@ -37,7 +38,8 @@ public class AccountActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_account);
+        setupDrawer();
 //get firebase auth instance
         auth = FirebaseAuth.getInstance();
         email = (TextView) findViewById(R.id.useremail);
@@ -45,7 +47,6 @@ public class AccountActivity extends BaseActivity {
         //get current user
         final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         setDataToView(user);
-
         authListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -172,9 +173,8 @@ public class AccountActivity extends BaseActivity {
     @SuppressLint("SetTextI18n")
     private void setDataToView(FirebaseUser user) {
 
-        email.setText("User Email: " + user.getEmail());
-
-
+        if(user != null)
+            email.setText("User Email: " + user.getEmail());
     }
 
     // this listener will be called when there is change in firebase user session
