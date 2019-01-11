@@ -13,6 +13,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.bikeology.bikemaps.AccountActivity.AccountActivity;
+import com.bikeology.bikemaps.AccountActivity.LoginActivity;
+
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     protected DrawerLayout mDrawerLayout;
@@ -53,6 +56,11 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
             }
             case R.id.nav_map: {
                 Intent intent = new Intent(this, MainActivity.class);
+                this.startActivity(intent);
+                break;
+            }
+            case R.id.nav_account: {
+                Intent intent = new Intent(this, LoginActivity.class);
                 this.startActivity(intent);
                 break;
             }

@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -36,9 +37,13 @@
             android:required="false" />
 
         <activity android:name=".testactivity2" />
-
-        <activity android:name=".SettingsActivity"
-            android:label="@string/settings_title"></activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings_title" />
+        <activity android:name=".AccountActivity.LoginActivity" />
+        <activity android:name=".AccountActivity.SignupActivity" />
+        <activity android:name=".AccountActivity.ResetPasswordActivity" />
+        <activity android:name=".AccountActivity.AccountActivity"></activity>
     </application>
 
 </manifest>

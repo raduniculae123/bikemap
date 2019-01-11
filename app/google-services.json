@@ -23,6 +23,14 @@
           }
         },
         {
+          "client_id": "999577704262-8nk01iksbth8o6k7g94k868ueivd8c4f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bikeology.bikemaps",
+            "certificate_hash": "6ddd9024c1766b808eb31c368c85a7aa09f83c4c"
+          }
+        },
+        {
           "client_id": "999577704262-oa2ei1advu0f199v50ci0sn3e8eeo1vc.apps.googleusercontent.com",
           "client_type": 3
         }
