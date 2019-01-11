@@ -40,10 +40,14 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings_title" />
-        <activity android:name=".AccountActivity.LoginActivity" />
-        <activity android:name=".AccountActivity.SignupActivity" />
-        <activity android:name=".AccountActivity.ResetPasswordActivity" />
-        <activity android:name=".AccountActivity.AccountActivity"></activity>
+        <activity android:name=".AccountActivity.LoginActivity"
+            android:label="Login"/>
+        <activity android:name=".AccountActivity.SignupActivity"
+            android:label="Sign Up"/>
+        <activity android:name=".AccountActivity.ResetPasswordActivity"
+            android:label="Reset Password"/>
+        <activity android:name=".AccountActivity.AccountActivity"
+            android:label="Account"/>
     </application>
 
 </manifest>
