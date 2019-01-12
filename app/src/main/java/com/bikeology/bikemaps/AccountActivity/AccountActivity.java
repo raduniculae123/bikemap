@@ -63,11 +63,11 @@ public class AccountActivity extends BaseActivity {
 
         btnChangePassword = (Button) findViewById(R.id.change_password_button);
 
-        btnRemoveUser = (Button) findViewById(R.id.remove_user_button);
+
 
         changePassword = (Button) findViewById(R.id.changePass);
 
-        remove = (Button) findViewById(R.id.remove);
+
         signOut = (Button) findViewById(R.id.sign_out);
 
         oldEmail = (EditText) findViewById(R.id.old_email);
@@ -82,7 +82,7 @@ public class AccountActivity extends BaseActivity {
 
         changePassword.setVisibility(View.GONE);
 
-        remove.setVisibility(View.GONE);
+
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
@@ -101,7 +101,7 @@ public class AccountActivity extends BaseActivity {
 
                 changePassword.setVisibility(View.VISIBLE);
 
-                remove.setVisibility(View.GONE);
+
             }
         });
 
@@ -137,29 +137,7 @@ public class AccountActivity extends BaseActivity {
         });
 
 
-        btnRemoveUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                if (user != null) {
-                    user.delete()
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(AccountActivity.this, "Your profile is deleted:( Create a account now!", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(AccountActivity.this, SignupActivity.class));
-                                        finish();
-                                        progressBar.setVisibility(View.GONE);
-                                    } else {
-                                        Toast.makeText(AccountActivity.this, "Failed to delete your account!", Toast.LENGTH_SHORT).show();
-                                        progressBar.setVisibility(View.GONE);
-                                    }
-                                }
-                            });
-                }
-            }
-        });
+
 
         signOut.setOnClickListener(new View.OnClickListener() {
             @Override
