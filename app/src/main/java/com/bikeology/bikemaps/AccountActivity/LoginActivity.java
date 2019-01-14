@@ -107,4 +107,13 @@ public class LoginActivity extends BaseActivity {
             }
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (auth.getCurrentUser() != null) {
+            //startActivity(new Intent(LoginActivity.this, AccountActivity.class));
+            finish();
+        }
+    }
 }
