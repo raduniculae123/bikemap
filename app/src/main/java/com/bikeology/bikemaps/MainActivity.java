@@ -9,22 +9,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
-import android.support.design.widget.NavigationView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -39,15 +31,15 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-
-import java.nio.BufferUnderflowException;
+import com.google.firebase.firestore.auth.User;
 
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
+import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
-import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
@@ -68,6 +60,27 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         initGoogleMap(savedInstanceState);
         mDb =FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+    }
+
+    private void getUserDetails(){
+        if(mUserLocation == null){
+            mUserLocation = new UserLocation();
+            DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                    .document(FirebaseAuth.getInstance().getUid());
+
+            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if(task.isSuccessful()){
+                        Log.d(TAG, "onComplete: Sccessfully get the user details");
+
+                        User user = task.getResult().toObject(User.class);
+                        mUserLocation.setUser(user);
+                        getLastKnownLocation();
+                    }
+                }
+            });
+        }
     }
 
     private void saveUserLocation(){
@@ -163,6 +176,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
+            getUserDetails();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -213,6 +227,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if (mLocationPermissionGranted) {
+                    getUserDetails();
                 } else {
                     getLocationPermission();
                 }
@@ -241,6 +256,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         mMapView.onResume();
         if (checkMapServices()) {
             if (mLocationPermissionGranted) {
+                getUserDetails();
             } else {
                 getLocationPermission();
             }
