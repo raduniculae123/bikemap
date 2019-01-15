@@ -37,6 +37,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.nio.BufferUnderflowException;
@@ -53,6 +56,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private boolean mLocationPermissionGranted = false;
     private MapView mMapView;
     private FusedLocationProviderClient mFusedLocationClient;
+    private UserLocation mUserLocation;
+    private FirebaseFirestore mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,15 +66,29 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         setupDrawer();
 
         initGoogleMap(savedInstanceState);
+        mDb =FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
-    private double latitude,longitude;
+    private void saveUserLocation(){
+        if(mUserLocation != null){
+            DocumentReference locationRef = mDb.collection(getString(R.string.collection_user_locations))
+                    .document(FirebaseAuth.getInstance().getUid());
+            locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if(task.isSuccessful()){
+                        Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
+                                "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
+                                "\n longitude: " + mUserLocation.getGeo_point().getLongitude());                    }
+                }
+            });
+        }
+    }
+    
     private void getLastKnownLocation() {
         Log.d(TAG, "getLastKnownLocation: called.");
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
             return;
         }
         mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
@@ -77,22 +96,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void onComplete(@NonNull Task<Location> task) {
                 if(task.isSuccessful()){
                     Location location = task.getResult();
-                    GeoPoint geoPointpoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                    latitude=location.getLatitude();
-                    longitude=location.getLongitude();
+                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                    Log.d(TAG, "onComplete: latitude" + geoPoint.getLatitude());
+                    Log.d(TAG, "onComplete: longitude" + geoPoint.getLongitude());
+
+                    mUserLocation.setGeo_point(geoPoint);
+                    mUserLocation.setTimestamp(null);
+                    saveUserLocation();
                 }
             }
         });
     }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
+    
     private void initGoogleMap(Bundle savedInstanceState) {
         // *** IMPORTANT ***
         // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
@@ -257,8 +272,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         super.onStop();
         mMapView.onStop();
     }
-
-
 
     @Override
     public void onMapReady(GoogleMap map) {
