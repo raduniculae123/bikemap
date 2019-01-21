@@ -30,6 +30,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -62,41 +63,23 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
-    private void getUserDetails(){
-        if(mUserLocation == null){
-            mUserLocation = new UserLocation();
-            DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
-                    .document(FirebaseAuth.getInstance().getUid());
-
-            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if(task.isSuccessful()){
-                        Log.d(TAG, "onComplete: Sccessfully get the user details");
-
-                        User user = task.getResult().toObject(User.class);
-                        mUserLocation.setUser(user);
-                        getLastKnownLocation();
-                    }
-                }
-            });
-        }
-    }
-
     private void saveUserLocation(){
-        if(mUserLocation != null){
-            DocumentReference locationRef = mDb.collection(getString(R.string.collection_user_locations))
-                    .document(FirebaseAuth.getInstance().getUid());
-            locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if(task.isSuccessful()){
-                        Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
-                                "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
-                                "\n longitude: " + mUserLocation.getGeo_point().getLongitude());                    }
-                }
-            });
+
+        if(FirebaseAuth.getInstance().getUid() == null) {
+            return;
         }
+
+        DocumentReference locationRef = mDb.collection(getString(R.string.collection_user_locations))
+                .document(FirebaseAuth.getInstance().getUid());
+        locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
+                            "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
+                            "\n longitude: " + mUserLocation.getGeo_point().getLongitude());                    }
+            }
+        });
     }
     
     private void getLastKnownLocation() {
@@ -112,6 +95,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                     Log.d(TAG, "onComplete: latitude" + geoPoint.getLatitude());
                     Log.d(TAG, "onComplete: longitude" + geoPoint.getLongitude());
+
+                    if(mUserLocation == null){
+                        mUserLocation = new UserLocation();
+                        mUserLocation.setUserId(FirebaseAuth.getInstance().getUid());
+                    }
 
                     mUserLocation.setGeo_point(geoPoint);
                     mUserLocation.setTimestamp(null);
@@ -176,7 +164,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
-            getUserDetails();
+            getLastKnownLocation();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -227,7 +215,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if (mLocationPermissionGranted) {
-                    getUserDetails();
+                    getLastKnownLocation();
                 } else {
                     getLocationPermission();
                 }
@@ -256,7 +244,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         mMapView.onResume();
         if (checkMapServices()) {
             if (mLocationPermissionGranted) {
-                getUserDetails();
+                getLastKnownLocation();
             } else {
                 getLocationPermission();
             }

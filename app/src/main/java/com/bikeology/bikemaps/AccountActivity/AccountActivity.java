@@ -32,7 +32,7 @@ public class AccountActivity extends BaseActivity {
 
     private EditText oldEmail, password, newPassword;
     private ProgressBar progressBar;
-    private FirebaseAuth auth;
+    //private FirebaseAuth auth;
 
 
     @Override

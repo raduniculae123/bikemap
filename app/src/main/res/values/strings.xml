@@ -8,7 +8,7 @@
     <string name="close">Close</string>
 
     <string name="nav_map">Map</string>
-    <string name="nav_myaccount">My Account</string>
+    <string name="nav_my_account">My Account</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_logout">Log Out</string>
     <string name="nav_header_title">Navigation header</string>
@@ -46,7 +46,6 @@
     <string name="forgot_password_msg">We just need your registered Email Id to sent you password reset instructions.</string>
     <string name="email_id">Email ID</string>
 
-    <string name="collection_user_locations">User Locaions</string>
-    <string name="collection_users">Users</string>
+    <string name="collection_user_locations">User Locations</string>
 
 </resources>

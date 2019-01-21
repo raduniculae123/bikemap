@@ -15,11 +15,13 @@ import android.view.MenuItem;
 
 import com.bikeology.bikemaps.AccountActivity.AccountActivity;
 import com.bikeology.bikemaps.AccountActivity.LoginActivity;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     protected DrawerLayout mDrawerLayout;
     protected ActionBarDrawerToggle mToggle;
+    protected FirebaseAuth auth;
 
 
     protected void setupDrawer(){
@@ -63,6 +65,9 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
                 Intent intent = new Intent(this, AccountActivity.class);
                 this.startActivity(intent);
                 break;
+            }
+            case R.id.nav_logout: {
+                auth.signOut();
             }
         }
         //close navigation drawer

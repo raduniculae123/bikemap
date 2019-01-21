@@ -2,7 +2,6 @@ package com.bikeology.bikemaps;
 
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ServerTimestamp;
-import com.google.firebase.firestore.auth.User;
 
 import java.util.Date;
 
@@ -10,12 +9,12 @@ public class UserLocation {
 
     private GeoPoint geo_point;
     private @ServerTimestamp Date timestamp;
-    private User user;
+    private String userId;
 
-    public UserLocation(GeoPoint geo_point, Date timestamp, User user) {
+    public UserLocation(GeoPoint geo_point, Date timestamp, String userId) {
         this.geo_point = geo_point;
         this.timestamp = timestamp;
-        this.user = user;
+        this.userId = userId;
     }
 
     public UserLocation() {
@@ -38,12 +37,12 @@ public class UserLocation {
         this.timestamp = timestamp;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     @Override
@@ -51,7 +50,7 @@ public class UserLocation {
         return "UserLocation{" +
                 "geo_point=" + geo_point +
                 ", timestamp=" + timestamp +
-                ", user=" + user +
+                ", userId=" + userId +
                 '}';
     }
 }
