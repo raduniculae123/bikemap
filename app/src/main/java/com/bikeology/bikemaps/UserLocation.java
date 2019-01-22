@@ -8,13 +8,16 @@ import java.util.Date;
 public class UserLocation {
 
     private GeoPoint geo_point;
-    private @ServerTimestamp Date timestamp;
+    private @ServerTimestamp
+    Date timestamp;
     private String userId;
+    private String userEmail;
 
-    public UserLocation(GeoPoint geo_point, Date timestamp, String userId) {
+    public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail) {
         this.geo_point = geo_point;
         this.timestamp = timestamp;
         this.userId = userId;
+        this.userEmail = userEmail;
     }
 
     public UserLocation() {
@@ -45,12 +48,21 @@ public class UserLocation {
         this.userId = userId;
     }
 
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
     @Override
     public String toString() {
         return "UserLocation{" +
                 "geo_point=" + geo_point +
                 ", timestamp=" + timestamp +
                 ", userId=" + userId +
+                ", userEmail=" + userEmail +
                 '}';
     }
 }

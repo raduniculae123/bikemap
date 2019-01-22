@@ -114,6 +114,7 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:layout_alignStart="@+id/change_password_button"
+            android:layout_alignLeft="@+id/change_password_button"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="94dp"
             android:background="@color/colorPrimary"
@@ -147,7 +148,8 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:menu="@menu/navigation_menu">
+        app:menu="@menu/navigation_menu"
+        app:headerLayout="@layout/navigation_header">
 
     </android.support.design.widget.NavigationView>
 

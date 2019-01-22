@@ -44,7 +44,6 @@ import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
-    private Button button;
     private static final String TAG = "MainActivity";
     private boolean mLocationPermissionGranted = false;
     private MapView mMapView;
@@ -100,7 +99,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         mUserLocation = new UserLocation();
                         mUserLocation.setUserId(FirebaseAuth.getInstance().getUid());
                     }
-
+                    if(FirebaseAuth.getInstance().getCurrentUser() != null)
+                    {
+                        mUserLocation.setUserEmail(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+                    }
                     mUserLocation.setGeo_point(geoPoint);
                     mUserLocation.setTimestamp(null);
                     saveUserLocation();
@@ -255,21 +257,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     public void onStart() {
         super.onStart();
         mMapView.onStart();
-        button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openActivity2();
-            }
-        });
     }
 
 
-    public void openActivity2(){
-        Intent intent = new Intent(this, testactivity2.class);
-        startActivity(intent);
-
-    }
 
     @Override
     public void onStop() {

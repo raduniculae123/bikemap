@@ -60,29 +60,18 @@ public class AccountActivity extends BaseActivity {
             }
         };
 
-
         btnChangePassword = (Button) findViewById(R.id.change_password_button);
-
-
-
         changePassword = (Button) findViewById(R.id.changePass);
-
-
         signOut = (Button) findViewById(R.id.sign_out);
 
         oldEmail = (EditText) findViewById(R.id.old_email);
-
         password = (EditText) findViewById(R.id.password);
         newPassword = (EditText) findViewById(R.id.newPassword);
 
         oldEmail.setVisibility(View.GONE);
-
         password.setVisibility(View.GONE);
         newPassword.setVisibility(View.GONE);
-
         changePassword.setVisibility(View.GONE);
-
-
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
