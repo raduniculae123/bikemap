@@ -32,6 +32,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -57,6 +58,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private UserLocation mUserLocation;
     private FirebaseFirestore mDb;
     private GoogleMap googleMap;
+    private Marker marker;
+    private PlaceAutocompleteFragment autocompleteFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +71,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         mDb =FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+        autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
@@ -76,7 +79,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
-                googleMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
+                marker = googleMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
             }
 
             @Override
@@ -85,6 +88,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 Log.i(TAG, "An error occurred: " + status);
             }
         });
+
+        autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button)
+                .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        marker.remove();
+                        autocompleteFragment.setText("");
+                    }
+                });
     }
 
     private void saveUserLocation(){
