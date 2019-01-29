@@ -106,7 +106,7 @@ public class LocationService extends Service {
 
                         Location location = locationResult.getLastLocation();
 
-                        if (location != null) {
+                        if (location != null && FirebaseAuth.getInstance().getCurrentUser() != null) {
                             String userId = FirebaseAuth.getInstance().getUid();
                             String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
                             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
