@@ -61,7 +61,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     }
 
     protected void setNavigationViewListener() {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.navigationView);
+        NavigationView navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(this);
         headView = navigationView.getHeaderView(0);
         headerTitle = headView.findViewById(R.id.nav_header_title);

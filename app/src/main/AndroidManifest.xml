@@ -48,6 +48,9 @@
             android:label="Reset Password"/>
         <activity android:name=".AccountActivity.AccountActivity"
             android:label="Account"/>
+
+        <service android:name=".services.LocationService"
+            android:stopWithTask="true"/>
     </application>
 
 </manifest>

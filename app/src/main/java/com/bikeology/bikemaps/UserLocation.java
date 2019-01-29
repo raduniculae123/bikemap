@@ -2,6 +2,7 @@ package com.bikeology.bikemaps;
 
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ServerTimestamp;
+import com.google.firebase.firestore.auth.User;
 
 import java.util.Date;
 
