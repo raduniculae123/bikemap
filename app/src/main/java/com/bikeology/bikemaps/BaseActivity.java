@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.gms.maps.model.LatLng;
 
 import com.bikeology.bikemaps.AccountActivity.AccountActivity;
 import com.bikeology.bikemaps.AccountActivity.LoginActivity;
@@ -27,6 +28,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     protected FirebaseAuth auth;
     protected View headView;
     protected TextView headerTitle;
+
 
 
     protected void setupDrawer(){
@@ -67,6 +69,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         headerTitle = headView.findViewById(R.id.nav_header_title);
 
     }
+
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {

@@ -28,6 +28,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -42,6 +44,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.auth.User;
+import com.google.android.gms.maps.model.LatLng;
 
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
 import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
@@ -57,6 +60,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private UserLocation mUserLocation;
     private FirebaseFirestore mDb;
     private GoogleMap googleMap;
+    private static final float DEFAULT_ZOOM = 15f;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,12 +77,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
+
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
                 googleMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
+                LatLng latLng = place.getLatLng();
+                moveCamera(latLng, DEFAULT_ZOOM, "Searched Location");
             }
 
             @Override
@@ -278,6 +287,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     }
 
+    private void moveCamera(LatLng latLng, float zoom, String title){
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
