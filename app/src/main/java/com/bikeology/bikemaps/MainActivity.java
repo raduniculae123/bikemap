@@ -64,12 +64,22 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private static final float DEFAULT_ZOOM = 15f;
     private Marker marker;
     private PlaceAutocompleteFragment autocompleteFragment;
-
+    private Button button_recenter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupDrawer();
+
+        button_recenter = (Button) findViewById(R.id.button_recenter);
+        button_recenter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude());
+                moveCamera(myLatLng, DEFAULT_ZOOM, "My Location");
+            }
+        });
 
         initGoogleMap(savedInstanceState);
         mDb =FirebaseFirestore.getInstance();
@@ -84,6 +94,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
                 marker = googleMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
+
                 LatLng latLng = place.getLatLng();
                 moveCamera(latLng, DEFAULT_ZOOM, "Searched Location");
             }
@@ -103,6 +114,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         autocompleteFragment.setText("");
                     }
                 });
+
     }
 
     private void saveUserLocation(){
@@ -296,10 +308,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     }
 
+
     private void moveCamera(LatLng latLng, float zoom, String title){
         Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
     }
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
