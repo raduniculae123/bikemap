@@ -17,6 +17,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bikeology.bikemaps.services.LocationService;
@@ -26,6 +27,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdate;
@@ -47,6 +49,10 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.auth.User;
 import com.google.android.gms.maps.model.LatLng;
 
+
+
+
+
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
 import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
@@ -65,12 +71,32 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private Marker marker;
     private PlaceAutocompleteFragment autocompleteFragment;
     private Button button_recenter;
+    private PlaceInfo Place;
+    private ImageView icInfo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupDrawer();
+        icInfo = findViewById(R.id.place_info);
+        icInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "onClick : clicked place info");
+                try{
+                    if(marker.isInfoWindowShown()){
+                        marker.hideInfoWindow();
+                    }
+                    else{ marker.showInfoWindow();
+                        Log.e(TAG,"onClick : place Info " + Place.toString());
 
+                    }
+                }catch(NullPointerException e){
+                    Log.e(TAG,"onClick : NullPointerException: " + e.getMessage());
+
+                }
+            }
+        });
         button_recenter = (Button) findViewById(R.id.button_recenter);
         button_recenter.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,12 +117,21 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
+
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
-                marker = googleMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
-
                 LatLng latLng = place.getLatLng();
-                moveCamera(latLng, DEFAULT_ZOOM, "Searched Location");
+                moveCamera(latLng, DEFAULT_ZOOM, "searched place");
+                String snippet = "Adress: " + place.getAddress() + "\n" +
+                        "Phone Number: " + place.getPhoneNumber() + "\n" +
+                        "Website: " + place.getWebsiteUri() + "\n" +
+                        "Price Rating: " + place.getRating() + "\n" ;
+                MarkerOptions options  = new MarkerOptions()
+                        .position(latLng)
+                        .title(place.getName().toString())
+                        .snippet(snippet);
+                marker = googleMap.addMarker(options);
+                googleMap.addMarker(options);
             }
 
             @Override
@@ -110,6 +145,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        googleMap.clear();
                         marker.remove();
                         autocompleteFragment.setText("");
                     }
@@ -309,9 +345,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
 
+
+
+
+
     private void moveCamera(LatLng latLng, float zoom, String title){
         Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        googleMap.clear();
     }
 
 
