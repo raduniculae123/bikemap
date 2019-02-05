@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -50,9 +51,6 @@ import com.google.firebase.firestore.auth.User;
 import com.google.android.gms.maps.model.LatLng;
 
 
-
-
-
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
 import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
@@ -73,42 +71,62 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private Button button_recenter;
     private PlaceInfo Place;
     private ImageView icInfo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupDrawer();
+
+
+
         icInfo = findViewById(R.id.place_info);
         icInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "onClick : clicked place info");
-                try{
-                    if(marker.isInfoWindowShown()){
+                try {
+                    if (marker.isInfoWindowShown()) {
                         marker.hideInfoWindow();
-                    }
-                    else{ marker.showInfoWindow();
-                        Log.e(TAG,"onClick : place Info " + Place.toString());
+                    } else {
+                        marker.showInfoWindow();
+                        Log.e(TAG, "onClick : place Info " + Place.toString());
 
                     }
-                }catch(NullPointerException e){
-                    Log.e(TAG,"onClick : NullPointerException: " + e.getMessage());
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "onClick : NullPointerException: " + e.getMessage());
 
                 }
             }
         });
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude());
+                movemyCamera(myLatLng, 15f, "My Location");
+            }
+
+        }, 1000);
+        icInfo.setVisibility(View.GONE);
         button_recenter = (Button) findViewById(R.id.button_recenter);
         button_recenter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (icInfo.getVisibility() == View.VISIBLE) {
+                    icInfo.setVisibility(View.VISIBLE);
+                } else icInfo.setVisibility(View.GONE);
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
-                moveCamera(myLatLng, DEFAULT_ZOOM, "My Location");
+                movemyCamera(myLatLng, 17f, "My Location");
+
             }
         });
 
         initGoogleMap(savedInstanceState);
-        mDb =FirebaseFirestore.getInstance();
+        mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         autocompleteFragment = (PlaceAutocompleteFragment)
@@ -120,13 +138,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
+                googleMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MainActivity.this));
+                icInfo.setVisibility(View.VISIBLE);
                 LatLng latLng = place.getLatLng();
                 moveCamera(latLng, DEFAULT_ZOOM, "searched place");
                 String snippet = "Adress: " + place.getAddress() + "\n" +
                         "Phone Number: " + place.getPhoneNumber() + "\n" +
                         "Website: " + place.getWebsiteUri() + "\n" +
-                        "Price Rating: " + place.getRating() + "\n" ;
-                MarkerOptions options  = new MarkerOptions()
+                        "Price Rating: " + place.getRating() + "\n";
+                MarkerOptions options = new MarkerOptions()
                         .position(latLng)
                         .title(place.getName().toString())
                         .snippet(snippet);
@@ -147,15 +167,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     public void onClick(View view) {
                         googleMap.clear();
                         marker.remove();
+                        icInfo.setVisibility(view.GONE);
                         autocompleteFragment.setText("");
                     }
                 });
 
     }
 
-    private void saveUserLocation(){
+    private void saveUserLocation() {
 
-        if(FirebaseAuth.getInstance().getUid() == null) {
+        if (FirebaseAuth.getInstance().getUid() == null) {
             return;
         }
 
@@ -164,14 +185,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
                             "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
-                            "\n longitude: " + mUserLocation.getGeo_point().getLongitude());                    }
+                            "\n longitude: " + mUserLocation.getGeo_point().getLongitude());
+                }
             }
         });
     }
-    
+
     private void getLastKnownLocation() {
         Log.d(TAG, "getLastKnownLocation: called.");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -180,18 +202,17 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
             @Override
             public void onComplete(@NonNull Task<Location> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     Location location = task.getResult();
                     GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                     Log.d(TAG, "onComplete: latitude" + geoPoint.getLatitude());
                     Log.d(TAG, "onComplete: longitude" + geoPoint.getLongitude());
 
-                    if(mUserLocation == null){
+                    if (mUserLocation == null) {
                         mUserLocation = new UserLocation();
                         mUserLocation.setUserId(FirebaseAuth.getInstance().getUid());
                     }
-                    if(FirebaseAuth.getInstance().getCurrentUser() != null)
-                    {
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                         mUserLocation.setUserEmail(FirebaseAuth.getInstance().getCurrentUser().getEmail());
                     }
                     mUserLocation.setGeo_point(geoPoint);
@@ -202,7 +223,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         });
     }
-    
+
     private void initGoogleMap(Bundle savedInstanceState) {
         // *** IMPORTANT ***
         // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
@@ -302,15 +323,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    private void startLocationService(){
-        if(!isLocationServiceRunning()){
+    private void startLocationService() {
+        if (!isLocationServiceRunning()) {
             Intent serviceIntent = new Intent(this, LocationService.class);
 //        this.startService(serviceIntent);
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
                 MainActivity.this.startForegroundService(serviceIntent);
-            }else{
+            } else {
                 startService(serviceIntent);
             }
         }
@@ -318,8 +339,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
-            if("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
                 Log.d(TAG, "isLocationServiceRunning: location service is already running.");
                 return true;
             }
@@ -345,12 +366,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
 
+    private void movemyCamera(LatLng latLng, float zoom, String title) {
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+    }
 
 
-
-
-    private void moveCamera(LatLng latLng, float zoom, String title){
-        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+    private void moveCamera(LatLng latLng, float zoom, String title) {
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
         googleMap.clear();
     }
@@ -387,7 +410,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         super.onStart();
         mMapView.onStart();
     }
-
 
 
     @Override
