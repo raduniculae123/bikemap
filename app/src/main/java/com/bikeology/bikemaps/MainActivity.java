@@ -37,6 +37,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -79,7 +80,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         setupDrawer();
 
 
-
         icInfo = findViewById(R.id.place_info);
         icInfo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,10 +106,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void run() {
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
-                movemyCamera(myLatLng, 15f, "My Location");
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 17));
+
             }
 
         }, 1000);
+
+
         icInfo.setVisibility(View.GONE);
         button_recenter = (Button) findViewById(R.id.button_recenter);
         button_recenter.setOnClickListener(new View.OnClickListener() {
