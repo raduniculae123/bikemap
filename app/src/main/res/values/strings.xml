@@ -14,6 +14,8 @@
     <string name="nav_header_title">Navigation header</string>
     <string name="button_recenter">RECENTER</string>
 
+    <string name="fastride">Fastest route</string>
+    <string name="joyride">Joy route</string>
     <!--register&login-->
     <string name="action_sign_in_short">Register</string>
     <string name="email">Email</string>

@@ -50,6 +50,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.auth.User;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.PendingResult;
+import com.google.maps.model.DirectionsResult;
 
 
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
@@ -69,9 +73,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private static final float DEFAULT_ZOOM = 15f;
     private Marker marker;
     private PlaceAutocompleteFragment autocompleteFragment;
-    private Button button_recenter;
+    private Button button_recenter,button_fastrt,button_joyrt;
     private PlaceInfo Place;
     private ImageView icInfo;
+    private GeoApiContext mGeoApiContext = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,20 +118,58 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }, 1000);
 
 
+        button_fastrt = (Button) findViewById(R.id.btn_fastrt);
+        button_fastrt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                calculateDirections(marker);
+            }
+        });
+
+        button_joyrt = (Button) findViewById(R.id.btn_joyrt);
+        button_joyrt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /////////
+                /////////
+            }
+        });
+
+
+
+        button_joyrt.setVisibility(View.GONE);
+        button_fastrt.setVisibility(View.GONE);
         icInfo.setVisibility(View.GONE);
         button_recenter = (Button) findViewById(R.id.button_recenter);
         button_recenter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+
                 if (icInfo.getVisibility() == View.VISIBLE) {
                     icInfo.setVisibility(View.VISIBLE);
                 } else icInfo.setVisibility(View.GONE);
+
+
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
                 movemyCamera(myLatLng, 17f, "My Location");
 
+                if (button_fastrt.getVisibility() == View.VISIBLE) {
+                    button_fastrt.setVisibility(View.VISIBLE);
+                } else button_fastrt.setVisibility(View.GONE);
+
+                if (button_joyrt.getVisibility() == View.VISIBLE) {
+                    button_joyrt.setVisibility(View.VISIBLE);
+                } else button_joyrt.setVisibility(View.GONE);
+
             }
         });
+
+
+
+
+
 
         initGoogleMap(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
@@ -155,6 +198,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         .snippet(snippet);
                 marker = googleMap.addMarker(options);
                 googleMap.addMarker(options);
+                button_fastrt.setVisibility(View.VISIBLE);
+                button_joyrt.setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -172,6 +217,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         marker.remove();
                         icInfo.setVisibility(view.GONE);
                         autocompleteFragment.setText("");
+                        button_joyrt.setVisibility(View.GONE);
+                        button_fastrt.setVisibility(View.GONE);
                     }
                 });
 
@@ -239,6 +286,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         mMapView.onCreate(mapViewBundle);
 
         mMapView.getMapAsync(this);
+
+
+        if (mGeoApiContext == null){
+
+            mGeoApiContext = new GeoApiContext.Builder()
+                    .apiKey(getString(R.string.google_maps_api_key))
+                    .build();
+
+        }
+
+
+
+
     }
 
     private boolean checkMapServices() {
@@ -381,6 +441,39 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         googleMap.clear();
     }
 
+    private void calculateDirections(Marker marker){
+        Log.d(TAG, "calculateDirections: calculating directions.");
+
+        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+                marker.getPosition().latitude,
+                marker.getPosition().longitude
+        );
+        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
+
+        directions.alternatives(true);
+        directions.origin(
+                new com.google.maps.model.LatLng(
+                        mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude()
+                )
+        );
+        Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+        directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
+            @Override
+            public void onResult(DirectionsResult result) {
+                Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
+                Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
+                Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
+                Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage() );
+
+            }
+        });
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
