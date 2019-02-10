@@ -13,9 +13,13 @@
     <string name="nav_logout">Log Out</string>
     <string name="nav_header_title">Navigation header</string>
     <string name="button_recenter">RECENTER</string>
-
-    <string name="fastride">Fastest route</string>
+    <!--Info Card-->
+    <string name="fastride">Fast route</string>
     <string name="joyride">Joy route</string>
+    <string name="button_website">Website</string>
+    <!--Navigate Card-->
+    <string name="button_nav_yes">Yes</string>
+    <string name="button_nav_cancel">Cancel</string>
     <!--register&login-->
     <string name="action_sign_in_short">Register</string>
     <string name="email">Email</string>

@@ -10,16 +10,19 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bikeology.bikemaps.services.LocationService;
@@ -81,10 +84,17 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private static final float DEFAULT_ZOOM = 15f;
     private Marker marker;
     private PlaceAutocompleteFragment autocompleteFragment;
-    private Button button_recenter,button_fastrt,button_joyrt;
+    private Button button_recenter,button_fastrt,button_joyrt, button_website;
     private PlaceInfo Place;
     private ImageView icInfo;
     private GeoApiContext mGeoApiContext = null;
+    private CardView infoCard;
+    private TextView infoTextName;
+    private TextView infoTextAddress;
+    private CardView navCard;
+    private TextView navText;
+    private Button button_nav_yes, button_nav_cancel;
+    private Place mPlace;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +102,17 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         setContentView(R.layout.activity_main);
         setupDrawer();
 
+        infoCard = findViewById(R.id.card_info);
+        infoCard.setVisibility(View.GONE);
+        infoTextName = findViewById(R.id.text_place_name);
+        infoTextAddress = findViewById(R.id.text_place_address);
+        button_website = findViewById(R.id.button_website);
+
+        navCard = findViewById(R.id.card_navigate);
+        navCard.setVisibility(View.GONE);
+        navText = findViewById(R.id.text_nav_to);
+        button_nav_yes = findViewById(R.id.button_nav_yes);
+        button_nav_cancel = findViewById(R.id.button_nav_cancel);
 
         icInfo = findViewById(R.id.place_info);
         icInfo.setOnClickListener(new View.OnClickListener() {
@@ -119,7 +140,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void run() {
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 17));
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
 
             }
 
@@ -131,9 +152,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             @Override
             public void onClick(View view) {
                 calculateDirections(marker);
-
+                infoCard.setVisibility(View.GONE);
+                navCard.setVisibility(View.VISIBLE);
+                navText.setText("Navigate to " + mPlace.getName() + "?");
             }
         });
+
 
         button_joyrt = (Button) findViewById(R.id.btn_joyrt);
         button_joyrt.setOnClickListener(new View.OnClickListener() {
@@ -143,6 +167,25 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 /////////
             }
         });
+        button_nav_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                infoCard.setVisibility(View.VISIBLE);
+                navCard.setVisibility(View.GONE);
+                navText.clearComposingText();
+                googleMap.clear();
+                LatLng latLng = mPlace.getLatLng();
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                MarkerOptions options = new MarkerOptions()
+                        .position(latLng)
+                        .title(mPlace.getName().toString());
+                marker = googleMap.addMarker(options);
+                googleMap.addMarker(options);
+
+
+            }
+        });
+
 
 
 
@@ -162,7 +205,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
-                movemyCamera(myLatLng, 17f, "My Location");
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, DEFAULT_ZOOM));
 
                 if (button_fastrt.getVisibility() == View.VISIBLE) {
                     button_fastrt.setVisibility(View.VISIBLE);
@@ -192,23 +235,38 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void onPlaceSelected(Place place) {
 
                 // TODO: Get info about the selected place.
-                Log.i(TAG, "Place: " + place.getName());
+                mPlace = place;
+                Log.i(TAG, "Place: " + mPlace.getName());
                 googleMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MainActivity.this));
                 icInfo.setVisibility(View.VISIBLE);
-                LatLng latLng = place.getLatLng();
-                moveCamera(latLng, DEFAULT_ZOOM, "searched place");
-                String snippet = "Adress: " + place.getAddress() + "\n" +
-                        "Phone Number: " + place.getPhoneNumber() + "\n" +
-                        "Website: " + place.getWebsiteUri() + "\n" +
-                        "Price Rating: " + place.getRating() + "\n";
+                LatLng latLng = mPlace.getLatLng();
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                String snippet = "Address: " + mPlace.getAddress() + "\n" +
+                        "Phone Number: " + mPlace.getPhoneNumber() + "\n" +
+                        "Website: " + mPlace.getWebsiteUri() + "\n" +
+                        "Price Rating: " + mPlace.getRating() + "\n";
                 MarkerOptions options = new MarkerOptions()
                         .position(latLng)
-                        .title(place.getName().toString())
+                        .title(mPlace.getName().toString())
                         .snippet(snippet);
                 marker = googleMap.addMarker(options);
                 googleMap.addMarker(options);
+
+                infoTextName.setText(mPlace.getName());
+                infoTextAddress.setText(mPlace.getAddress());
+                infoCard.setVisibility(View.VISIBLE);
                 button_fastrt.setVisibility(View.VISIBLE);
                 button_joyrt.setVisibility(View.VISIBLE);
+
+                final Uri website;
+                website = place.getWebsiteUri();
+                button_website.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, website));
+
+                    }
+                });
             }
 
             @Override
@@ -224,6 +282,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     public void onClick(View view) {
                         googleMap.clear();
                         marker.remove();
+                        infoTextName.clearComposingText();
+                        infoTextAddress.clearComposingText();
+                        infoCard.setVisibility(View.GONE);
                         icInfo.setVisibility(view.GONE);
                         autocompleteFragment.setText("");
                         button_joyrt.setVisibility(View.GONE);
@@ -480,7 +541,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         for(LatLng latLngPoint : lstLatLngRoute)
             boundsBuilder.include(latLngPoint);
 
-        int routePadding=120;
+        int routePadding=250;
         LatLngBounds latLngBounds = boundsBuilder.build();
 
         googleMap.animateCamera(
