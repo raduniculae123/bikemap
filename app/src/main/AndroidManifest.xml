@@ -36,7 +36,6 @@
             android:name="org.apache.http.legacy"
             android:required="false" />
 
-        <activity android:name=".testactivity2" />
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings_title" />

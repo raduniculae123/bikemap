@@ -131,6 +131,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             @Override
             public void onClick(View view) {
                 calculateDirections(marker);
+
             }
         });
 
@@ -258,6 +259,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     Polyline polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
                     polyline.setColor(-7829368);
                     polyline.setClickable(false);
+                    zoomRoute(polyline.getPoints());
 
                 }
             }
@@ -469,6 +471,28 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }
 
     }
+
+    private void zoomRoute(List<LatLng> lstLatLngRoute) {
+
+        if(googleMap == null || lstLatLngRoute == null || lstLatLngRoute.isEmpty()) return;
+
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        for(LatLng latLngPoint : lstLatLngRoute)
+            boundsBuilder.include(latLngPoint);
+
+        int routePadding=120;
+        LatLngBounds latLngBounds = boundsBuilder.build();
+
+        googleMap.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding),
+                600,
+                null
+        );
+
+
+    }
+
+
 
 
     private void movemyCamera(LatLng latLng, float zoom, String title) {
