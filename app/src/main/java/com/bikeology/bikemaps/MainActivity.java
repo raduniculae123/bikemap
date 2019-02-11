@@ -41,6 +41,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -194,7 +195,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         button_nav_yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude());
+
+                CameraPosition navigationCamera =new CameraPosition.Builder()
+                        .target(myLatLng)
+                        .zoom(20)
+                        .bearing(mUserLocation.getBearing())
+                        .tilt(30)
+                        .build();
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(navigationCamera));
+
                 mPolyline.setColor(Color.rgb(255, 0, 0));
+                mPolyline.setWidth(30);
             }
         });
 
@@ -214,10 +227,17 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     icInfo.setVisibility(View.VISIBLE);
                 } else icInfo.setVisibility(View.GONE);
 
-
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, DEFAULT_ZOOM));
+
+                CameraPosition centeredCamera =new CameraPosition.Builder()
+                        .target(myLatLng)
+                        .zoom(DEFAULT_ZOOM)
+                        .bearing(0)
+                        .tilt(0)
+                        .build();
+
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
 
                 if (button_fastrt.getVisibility() == View.VISIBLE) {
                     button_fastrt.setVisibility(View.VISIBLE);
@@ -393,6 +413,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     }
                     mUserLocation.setGeo_point(geoPoint);
                     mUserLocation.setTimestamp(null);
+                    mUserLocation.setBearing(location.getBearing());
                     saveUserLocation();
                     startLocationService();
                 }
@@ -529,7 +550,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
+            if ("com.bikeology.bikemaps.services.LocationService".equals(service.service.getClassName())) {
                 Log.d(TAG, "isLocationServiceRunning: location service is already running.");
                 return true;
             }

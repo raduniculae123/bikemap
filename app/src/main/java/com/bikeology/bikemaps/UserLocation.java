@@ -1,5 +1,7 @@
 package com.bikeology.bikemaps;
 
+import android.location.Location;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ServerTimestamp;
@@ -14,6 +16,7 @@ public class UserLocation {
     Date timestamp;
     private String userId;
     private String userEmail;
+    private float bearing;
 
     public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail) {
         this.geo_point = geo_point;
@@ -61,6 +64,14 @@ public class UserLocation {
         this.userEmail = userEmail;
     }
 
+    public float getBearing() {
+        return bearing;
+    }
+
+    public void setBearing(float bearing) {
+        this.bearing = bearing;
+    }
+
     @Override
     public String toString() {
         return "UserLocation{" +
@@ -68,6 +79,7 @@ public class UserLocation {
                 ", timestamp=" + timestamp +
                 ", userId=" + userId +
                 ", userEmail=" + userEmail +
+                ", bearing=" + bearing +
                 '}';
     }
 }
