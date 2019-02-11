@@ -12,28 +12,45 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+import com.google.android.gms.maps.model.LatLng;
+
+import com.bikeology.bikemaps.AccountActivity.AccountActivity;
+import com.bikeology.bikemaps.AccountActivity.LoginActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mToggle;
+    protected DrawerLayout mDrawerLayout;
+    protected ActionBarDrawerToggle mToggle;
+    protected FirebaseAuth auth;
+    protected View headView;
+    protected TextView headerTitle;
 
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+
+    protected void setupDrawer(){
+
+        setNavigationViewListener();
+        updateHeader();
+        mDrawerLayout = findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        super.onCreate(savedInstanceState, persistentState);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.navigation_menu, menu);
-        return true;
+    protected void updateHeader(){
+        if(FirebaseAuth.getInstance().getCurrentUser() == null)
+        {
+            headerTitle.setText("Not signed in");
+        }
+        else
+        {
+            headerTitle.setText(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+        }
     }
 
     @Override
@@ -42,28 +59,46 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         if(mToggle.onOptionsItemSelected(item)){
             return true;
         }
-        int id=item.getItemId();
-
         return super.onOptionsItemSelected(item);
     }
 
-    private void setNavigationViewListener() {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.navigationView);
+    protected void setNavigationViewListener() {
+        NavigationView navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(this);
+        headView = navigationView.getHeaderView(0);
+        headerTitle = headView.findViewById(R.id.nav_header_title);
+
     }
+
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
 
             case R.id.nav_settings: {
-                Intent intent1 = new Intent(this, SettingsActivity.class);
-                this.startActivity(intent1);
+                Intent intent = new Intent(this, SettingsActivity.class);
+                this.startActivity(intent);
+                break;
+            }
+            case R.id.nav_map: {
+                Intent intent = new Intent(this, MainActivity.class);
+                this.startActivity(intent);
+                break;
+            }
+            case R.id.nav_account: {
+                Intent intent = new Intent(this, AccountActivity.class);
+                this.startActivity(intent);
                 break;
             }
         }
         //close navigation drawer
         mDrawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateHeader();
     }
 }

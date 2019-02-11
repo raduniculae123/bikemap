@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -11,7 +12,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_new"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -35,10 +36,20 @@
             android:name="org.apache.http.legacy"
             android:required="false" />
 
-        <activity android:name=".testactivity2" />
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings_title" />
+        <activity android:name=".AccountActivity.LoginActivity"
+            android:label="Login"/>
+        <activity android:name=".AccountActivity.SignupActivity"
+            android:label="Sign Up"/>
+        <activity android:name=".AccountActivity.ResetPasswordActivity"
+            android:label="Reset Password"/>
+        <activity android:name=".AccountActivity.AccountActivity"
+            android:label="Account"/>
 
-        <activity android:name=".SettingsActivity"
-            android:label="@string/app_name"></activity>
+        <service android:name=".services.LocationService"
+            android:stopWithTask="true"/>
     </application>
 
 </manifest>

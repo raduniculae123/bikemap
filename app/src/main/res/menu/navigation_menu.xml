@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/nav_map"
+        android:title="@string/nav_map"
+        android:icon="@mipmap/baseline_map_black_24dp"/>
+
     <item android:id="@+id/nav_account"
         android:icon="@mipmap/baseline_person_black_24dp"
-        android:title="@string/nav_myaccount" />
+        android:title="@string/nav_my_account" />
 
     <item android:id="@+id/nav_settings"
         android:icon="@mipmap/baseline_settings_black_24dp"
-        android:title="@string/nav_settings"
-        app:showAsAction="always"/>
-
-    <item android:id="@+id/nav_logout"
-        android:icon="@mipmap/baseline_exit_to_app_black_24dp"
-        android:title="@string/nav_logout" />
+        android:title="@string/nav_settings"/>
 
 </menu>

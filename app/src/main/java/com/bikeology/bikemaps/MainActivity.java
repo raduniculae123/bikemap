@@ -1,6 +1,7 @@
 package com.bikeology.bikemaps;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -9,135 +10,314 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.Toast;
-import android.support.design.widget.NavigationView;
 
+import com.bikeology.bikemaps.services.LocationService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.auth.User;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.PendingResult;
+import com.google.maps.internal.PolylineEncoding;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
 
-import java.nio.BufferUnderflowException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
+import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
-import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
-    private Button button;
     private static final String TAG = "MainActivity";
     private boolean mLocationPermissionGranted = false;
     private MapView mMapView;
     private FusedLocationProviderClient mFusedLocationClient;
-
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mToggle;
+    private UserLocation mUserLocation;
+    private FirebaseFirestore mDb;
+    private GoogleMap googleMap;
+    private static final float DEFAULT_ZOOM = 15f;
+    private Marker marker;
+    private PlaceAutocompleteFragment autocompleteFragment;
+    private Button button_recenter,button_fastrt,button_joyrt;
+    private PlaceInfo Place;
+    private ImageView icInfo;
+    private GeoApiContext mGeoApiContext = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setupDrawer();
+
+
+        icInfo = findViewById(R.id.place_info);
+        icInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "onClick : clicked place info");
+                try {
+                    if (marker.isInfoWindowShown()) {
+                        marker.hideInfoWindow();
+                    } else {
+                        marker.showInfoWindow();
+                        Log.e(TAG, "onClick : place Info " + Place.toString());
+
+                    }
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "onClick : NullPointerException: " + e.getMessage());
+
+                }
+            }
+        });
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude());
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 17));
+
+            }
+
+        }, 1000);
+
+
+        button_fastrt = (Button) findViewById(R.id.btn_fastrt);
+        button_fastrt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                calculateDirections(marker);
+
+            }
+        });
+
+        button_joyrt = (Button) findViewById(R.id.btn_joyrt);
+        button_joyrt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /////////
+                /////////
+            }
+        });
+
+
+
+        button_joyrt.setVisibility(View.GONE);
+        button_fastrt.setVisibility(View.GONE);
+        icInfo.setVisibility(View.GONE);
+        button_recenter = (Button) findViewById(R.id.button_recenter);
+        button_recenter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                if (icInfo.getVisibility() == View.VISIBLE) {
+                    icInfo.setVisibility(View.VISIBLE);
+                } else icInfo.setVisibility(View.GONE);
+
+
+                LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude());
+                movemyCamera(myLatLng, 17f, "My Location");
+
+                if (button_fastrt.getVisibility() == View.VISIBLE) {
+                    button_fastrt.setVisibility(View.VISIBLE);
+                } else button_fastrt.setVisibility(View.GONE);
+
+                if (button_joyrt.getVisibility() == View.VISIBLE) {
+                    button_joyrt.setVisibility(View.VISIBLE);
+                } else button_joyrt.setVisibility(View.GONE);
+
+            }
+        });
+
+
+
+
+
+
         initGoogleMap(savedInstanceState);
+        mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        setNavigationViewListener();
+        autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
-        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
-        mDrawerLayout.addDrawerListener(mToggle);
-        mToggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.navigation_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        if(mToggle.onOptionsItemSelected(item)){
-            return true;
-        }
-        int id=item.getItemId();
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void setNavigationViewListener() {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.navigationView);
-        navigationView.setNavigationItemSelectedListener(this);
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-
-            case R.id.nav_settings: {
-                Intent intent1 = new Intent(this, SettingsActivity.class);
-                this.startActivity(intent1);
-                break;
-            }
-        }
-        //close navigation drawer
-        mDrawerLayout.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    private double latitude,longitude;
-    private void getLastKnownLocation() {
-        Log.d(TAG, "getLastKnownLocation: called.");
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            return;
-        }
-        mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public void onComplete(@NonNull Task<Location> task) {
-                if(task.isSuccessful()){
-                    Location location = task.getResult();
-                    GeoPoint geoPointpoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                    latitude=location.getLatitude();
-                    longitude=location.getLongitude();
+            public void onPlaceSelected(Place place) {
+
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName());
+                googleMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MainActivity.this));
+                icInfo.setVisibility(View.VISIBLE);
+                LatLng latLng = place.getLatLng();
+                moveCamera(latLng, DEFAULT_ZOOM, "searched place");
+                String snippet = "Adress: " + place.getAddress() + "\n" +
+                        "Phone Number: " + place.getPhoneNumber() + "\n" +
+                        "Website: " + place.getWebsiteUri() + "\n" +
+                        "Price Rating: " + place.getRating() + "\n";
+                MarkerOptions options = new MarkerOptions()
+                        .position(latLng)
+                        .title(place.getName().toString())
+                        .snippet(snippet);
+                marker = googleMap.addMarker(options);
+                googleMap.addMarker(options);
+                button_fastrt.setVisibility(View.VISIBLE);
+                button_joyrt.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
+
+        autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button)
+                .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        googleMap.clear();
+                        marker.remove();
+                        icInfo.setVisibility(view.GONE);
+                        autocompleteFragment.setText("");
+                        button_joyrt.setVisibility(View.GONE);
+                        button_fastrt.setVisibility(View.GONE);
+                    }
+                });
+
+    }
+
+
+    private void addPolylinesToMap(final DirectionsResult result){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: result routes: " + result.routes.length);
+
+                for(DirectionsRoute route: result.routes){
+                    Log.d(TAG, "run: leg: " + route.legs[0].toString());
+                    List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
+
+                    List<LatLng> newDecodedPath = new ArrayList<>();
+
+                    // This loops through all the LatLng coordinates of ONE polyline.
+                    for(com.google.maps.model.LatLng latLng: decodedPath){
+
+//                        Log.d(TAG, "run: latlng: " + latLng.toString());
+
+                        newDecodedPath.add(new LatLng(
+                                latLng.lat,
+                                latLng.lng
+                        ));
+                    }
+                    Polyline polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                    polyline.setColor(-7829368);
+                    polyline.setClickable(false);
+                    zoomRoute(polyline.getPoints());
+                    button_fastrt.setVisibility(View.GONE);
+                    button_joyrt.setVisibility(View.GONE);
+
                 }
             }
         });
     }
 
-    public double getLatitude() {
-        return latitude;
+
+
+    private void saveUserLocation() {
+
+        if (FirebaseAuth.getInstance().getUid() == null) {
+            return;
+        }
+
+        DocumentReference locationRef = mDb.collection(getString(R.string.collection_user_locations))
+                .document(FirebaseAuth.getInstance().getUid());
+        locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
+                            "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
+                            "\n longitude: " + mUserLocation.getGeo_point().getLongitude());
+                }
+            }
+        });
     }
 
-    public double getLongitude() {
-        return longitude;
+    private void getLastKnownLocation() {
+        Log.d(TAG, "getLastKnownLocation: called.");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                if (task.isSuccessful()) {
+                    Location location = task.getResult();
+                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                    Log.d(TAG, "onComplete: latitude" + geoPoint.getLatitude());
+                    Log.d(TAG, "onComplete: longitude" + geoPoint.getLongitude());
+
+                    if (mUserLocation == null) {
+                        mUserLocation = new UserLocation();
+                        mUserLocation.setUserId(FirebaseAuth.getInstance().getUid());
+                    }
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                        mUserLocation.setUserEmail(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+                    }
+                    mUserLocation.setGeo_point(geoPoint);
+                    mUserLocation.setTimestamp(null);
+                    saveUserLocation();
+                    startLocationService();
+                }
+            }
+        });
     }
 
     private void initGoogleMap(Bundle savedInstanceState) {
@@ -152,6 +332,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMapView.onCreate(mapViewBundle);
 
         mMapView.getMapAsync(this);
+
+
+        if (mGeoApiContext == null){
+
+            mGeoApiContext = new GeoApiContext.Builder()
+                    .apiKey(getString(R.string.google_maps_api_key))
+                    .build();
+
+        }
+
+
+
+
     }
 
     private boolean checkMapServices() {
@@ -195,6 +388,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
+            getLastKnownLocation();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -238,6 +432,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    private void startLocationService() {
+        if (!isLocationServiceRunning()) {
+            Intent serviceIntent = new Intent(this, LocationService.class);
+//        this.startService(serviceIntent);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+                MainActivity.this.startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+        }
+    }
+
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
+        }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        return false;
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -245,6 +465,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if (mLocationPermissionGranted) {
+                    getLastKnownLocation();
                 } else {
                     getLocationPermission();
                 }
@@ -253,6 +474,77 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    private void zoomRoute(List<LatLng> lstLatLngRoute) {
+
+        if(googleMap == null || lstLatLngRoute == null || lstLatLngRoute.isEmpty()) return;
+
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        for(LatLng latLngPoint : lstLatLngRoute)
+            boundsBuilder.include(latLngPoint);
+
+        int routePadding=120;
+        LatLngBounds latLngBounds = boundsBuilder.build();
+
+        googleMap.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding),
+                650,
+                null
+        );
+
+
+    }
+
+
+
+
+    private void movemyCamera(LatLng latLng, float zoom, String title) {
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+    }
+
+
+    private void moveCamera(LatLng latLng, float zoom, String title) {
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        googleMap.clear();
+    }
+
+    private void calculateDirections(Marker marker){
+        Log.d(TAG, "calculateDirections: calculating directions.");
+
+        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+                marker.getPosition().latitude,
+                marker.getPosition().longitude
+        );
+        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
+
+        directions.alternatives(false);
+        directions.origin(
+                new com.google.maps.model.LatLng(
+                        mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude()
+                )
+        );
+        Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+        directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
+            @Override
+            public void onResult(DirectionsResult result) {
+                Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
+                Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
+                Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
+                Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
+
+                addPolylinesToMap(result);
+
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage() );
+
+            }
+        });
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -273,6 +565,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMapView.onResume();
         if (checkMapServices()) {
             if (mLocationPermissionGranted) {
+                getLastKnownLocation();
             } else {
                 getLocationPermission();
             }
@@ -283,21 +576,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onStart() {
         super.onStart();
         mMapView.onStart();
-        button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openActivity2();
-            }
-        });
     }
 
-
-    public void openActivity2(){
-        Intent intent = new Intent(this, testactivity2.class);
-        startActivity(intent);
-
-    }
 
     @Override
     public void onStop() {
@@ -305,11 +585,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMapView.onStop();
     }
 
-
-
     @Override
     public void onMapReady(GoogleMap map) {
-        map.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        googleMap = map;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
