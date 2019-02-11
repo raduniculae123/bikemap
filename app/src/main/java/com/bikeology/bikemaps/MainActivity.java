@@ -321,6 +321,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     polyline.setColor(-7829368);
                     polyline.setClickable(false);
                     zoomRoute(polyline.getPoints());
+                    button_fastrt.setVisibility(View.GONE);
+                    button_joyrt.setVisibility(View.GONE);
 
                 }
             }
@@ -546,7 +548,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         googleMap.animateCamera(
                 CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding),
-                600,
+                650,
                 null
         );
 
