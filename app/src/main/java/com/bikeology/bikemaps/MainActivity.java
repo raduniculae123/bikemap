@@ -95,6 +95,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private TextView navText;
     private Button button_nav_yes, button_nav_cancel;
     private Place mPlace;
+    private boolean isRouteCalculated = false;
+    private Polyline mPolyline;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,6 +157,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 infoCard.setVisibility(View.GONE);
                 navCard.setVisibility(View.VISIBLE);
                 navText.setText("Navigate to " + mPlace.getName() + "?");
+                isRouteCalculated = true;
             }
         });
 
@@ -181,8 +184,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         .title(mPlace.getName().toString());
                 marker = googleMap.addMarker(options);
                 googleMap.addMarker(options);
+                button_fastrt.setVisibility(View.VISIBLE);
+                button_joyrt.setVisibility(View.VISIBLE);
+                isRouteCalculated = false;
+            }
+        });
 
-
+        button_nav_yes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mPolyline.setColor(16711680+);
             }
         });
 
@@ -251,7 +262,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         .snippet(snippet);
                 marker = googleMap.addMarker(options);
                 googleMap.addMarker(options);
-
+                isRouteCalculated = false;
                 infoTextName.setText(mPlace.getName());
                 infoTextAddress.setText(mPlace.getAddress());
                 infoCard.setVisibility(View.VISIBLE);
@@ -289,6 +300,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         autocompleteFragment.setText("");
                         button_joyrt.setVisibility(View.GONE);
                         button_fastrt.setVisibility(View.GONE);
+                        navCard.setVisibility(View.GONE);
+                        navText.clearComposingText();
+                        if(isRouteCalculated) {
+                            LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
+                                    mUserLocation.getGeo_point().getLongitude());
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
+                        }
+
                     }
                 });
 
@@ -317,10 +336,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                                 latLng.lng
                         ));
                     }
-                    Polyline polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                    polyline.setColor(-7829368);
-                    polyline.setClickable(false);
-                    zoomRoute(polyline.getPoints());
+                    mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                    mPolyline.setColor(-7829368);
+                    mPolyline.setClickable(false);
+                    zoomRoute(mPolyline.getPoints());
                     button_fastrt.setVisibility(View.GONE);
                     button_joyrt.setVisibility(View.GONE);
 
@@ -328,7 +347,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         });
     }
-
 
 
     private void saveUserLocation() {
