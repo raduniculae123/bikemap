@@ -193,7 +193,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         button_nav_yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mPolyline.setColor(16711680+);
+                mPolyline.setColor(16711680);
             }
         });
 

@@ -16,21 +16,25 @@
 
 
         <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:background="@color/white"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="@dimen/activity_horizontal_margin">
+            android:padding="@dimen/activity_horizontal_margin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
 
             <ImageView
                 android:layout_width="@dimen/logo_w_h"
                 android:layout_height="@dimen/logo_w_h"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="30dp"
+                android:layout_marginBottom="0dp"
                 android:contentDescription=""
-                android:src="@mipmap/ic_launcher_new_round"
+                android:src="@mipmap/ic_launcher_v3"
                 tools:ignore="ContentDescription" />
 
 
