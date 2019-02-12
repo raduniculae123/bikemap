@@ -19,6 +19,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.bikeology.bikemaps.MainActivity;
 import com.bikeology.bikemaps.R;
 import com.bikeology.bikemaps.UserClient;
 import com.bikeology.bikemaps.UserLocation;
@@ -27,6 +28,9 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -44,6 +48,12 @@ public class LocationService extends Service {
     private FusedLocationProviderClient mFusedLocationClient;
     private final static long UPDATE_INTERVAL = 2 * 1000;  /* 2 secs */
     private final static long FASTEST_INTERVAL = 1000; /* 1 sec */
+    private String userId;
+    private String userEmail;
+    private GeoPoint geoPoint;
+    private UserLocation userLocation;
+    private Location location;
+
 
     @Nullable
     @Override
@@ -104,18 +114,28 @@ public class LocationService extends Service {
 
                         Log.d(TAG, "onLocationResult: got location result.");
 
-                        Location location = locationResult.getLastLocation();
+                        location = locationResult.getLastLocation();
 
                         if (location != null && FirebaseAuth.getInstance().getCurrentUser() != null) {
-                            String userId = FirebaseAuth.getInstance().getUid();
-                            String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-                            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            UserLocation userLocation = new UserLocation(geoPoint, null, userId, userEmail);
+                            userId = FirebaseAuth.getInstance().getUid();
+                            userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+                            geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                            userLocation = new UserLocation(geoPoint, null, userId, userEmail);
+                            broadcastUserLocation(userLocation);
                             saveUserLocation(userLocation);
                         }
+
                     }
                 },
                 Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
+    }
+
+    private void broadcastUserLocation(UserLocation userLocation) {
+        Intent intent = new Intent("BM_Location");
+        intent.putExtra("location", location);
+        intent.putExtra("bearing", userLocation.getBearing());
+        getApplicationContext().sendBroadcast(intent);
+
     }
 
     private void saveUserLocation(final UserLocation userLocation){
@@ -142,5 +162,4 @@ public class LocationService extends Service {
         }
 
     }
-
 }

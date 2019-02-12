@@ -1,6 +1,7 @@
 package com.bikeology.bikemaps;
 
 import android.location.Location;
+import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.GeoPoint;
@@ -12,8 +13,7 @@ import java.util.Date;
 public class UserLocation {
 
     private GeoPoint geo_point;
-    private @ServerTimestamp
-    Date timestamp;
+    private @ServerTimestamp Date timestamp;
     private String userId;
     private String userEmail;
     private float bearing;

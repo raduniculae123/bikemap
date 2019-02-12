@@ -4,9 +4,11 @@ import android.Manifest;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -27,17 +29,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bikeology.bikemaps.services.LocationService;
-import com.bikeology.bikemaps.services.NavigationService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -52,13 +51,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.auth.User;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PendingResult;
@@ -89,7 +84,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private PlaceAutocompleteFragment autocompleteFragment;
     private Button button_recenter,button_fastrt,button_joyrt, button_website;
     private PlaceInfo Place;
-    private ImageView icInfo;
     private GeoApiContext mGeoApiContext = null;
     private CardView infoCard;
     private TextView infoTextName;
@@ -100,7 +94,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private Place mPlace;
     private boolean isRouteCalculated = false;
     private Polyline mPolyline;
-
+    private BroadcastReceiver locationReceiver;
+    private boolean navYes = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,25 +114,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         button_nav_yes = findViewById(R.id.button_nav_yes);
         button_nav_cancel = findViewById(R.id.button_nav_cancel);
 
-        icInfo = findViewById(R.id.place_info);
-        icInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "onClick : clicked place info");
-                try {
-                    if (marker.isInfoWindowShown()) {
-                        marker.hideInfoWindow();
-                    } else {
-                        marker.showInfoWindow();
-                        Log.e(TAG, "onClick : place Info " + Place.toString());
-
-                    }
-                } catch (NullPointerException e) {
-                    Log.e(TAG, "onClick : NullPointerException: " + e.getMessage());
-
-                }
-            }
-        });
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
 
@@ -190,6 +166,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_fastrt.setVisibility(View.VISIBLE);
                 button_joyrt.setVisibility(View.VISIBLE);
                 isRouteCalculated = false;
+                navYes = false;
             }
         });
 
@@ -199,13 +176,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
 
-                CameraPosition navigationCamera =new CameraPosition.Builder()
-                        .target(myLatLng)
-                        .zoom(20)
-                        .bearing(mUserLocation.getBearing())
-                        .tilt(30)
-                        .build();
-                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(navigationCamera));
+               navYes = true;
 
                 mPolyline.setColor(Color.rgb(255, 0, 0));
                 mPolyline.setWidth(30);
@@ -217,16 +188,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         button_joyrt.setVisibility(View.GONE);
         button_fastrt.setVisibility(View.GONE);
-        icInfo.setVisibility(View.GONE);
         button_recenter = (Button) findViewById(R.id.button_recenter);
         button_recenter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-
-                if (icInfo.getVisibility() == View.VISIBLE) {
-                    icInfo.setVisibility(View.VISIBLE);
-                } else icInfo.setVisibility(View.GONE);
 
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
@@ -252,8 +218,28 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         });
 
 
+        locationReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if(!navYes)
+                    return;
+                Location location = intent.getExtras().getParcelable("location");
+                float bearing = intent.getExtras().getFloat("bearing");
+                Log.d(TAG, "update camera valid : " + location);
+                LatLng myLatLng = new LatLng(location.getLatitude(),
+                        location.getLongitude());
+                CameraPosition povCamera = new CameraPosition.Builder()
+                        .target(myLatLng)      // Sets the center of the map to Mountain View
+                        .zoom(17)                   // Sets the zoom
+                        .bearing(bearing)                // Sets the orientation of the camera to east
+                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                        .build();                   // Creates a CameraPosition from the builder
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
 
 
+            }
+        };
+        getApplicationContext().registerReceiver(locationReceiver, new IntentFilter("BM_Location"));
 
 
         initGoogleMap(savedInstanceState);
@@ -263,6 +249,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
+
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
@@ -271,7 +258,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 mPlace = place;
                 Log.i(TAG, "Place: " + mPlace.getName());
                 googleMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MainActivity.this));
-                icInfo.setVisibility(View.VISIBLE);
                 LatLng latLng = mPlace.getLatLng();
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
                 String snippet = "Address: " + mPlace.getAddress() + "\n" +
@@ -297,7 +283,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     @Override
                     public void onClick(View view) {
                         startActivity(new Intent(Intent.ACTION_VIEW, website));
-
                     }
                 });
             }
@@ -318,7 +303,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         infoTextName.clearComposingText();
                         infoTextAddress.clearComposingText();
                         infoCard.setVisibility(View.GONE);
-                        icInfo.setVisibility(view.GONE);
                         autocompleteFragment.setText("");
                         button_joyrt.setVisibility(View.GONE);
                         button_fastrt.setVisibility(View.GONE);
@@ -336,13 +320,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
 
-    private void addPolylinesToMap(final DirectionsResult result){
+    private void addPolylinesToMap(final DirectionsResult result, final int shortestRoute){
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
                 Log.d(TAG, "run: result routes: " + result.routes.length);
 
-                for(DirectionsRoute route: result.routes){
+                if (shortestRoute == -1) {
+                    // Log error
+                    return;
+                }
+                DirectionsRoute route = result.routes[shortestRoute];
+                //for(DirectionsRoute route: result.routes){
                     Log.d(TAG, "run: leg: " + route.legs[0].toString());
                     List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
 
@@ -365,7 +354,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     button_fastrt.setVisibility(View.GONE);
                     button_joyrt.setVisibility(View.GONE);
 
-                }
+                //}
             }
         });
     }
@@ -547,20 +536,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         }
     }
-    private void startNavigationService() {
-        if (!isNavigationServiceRunning()) {
-            Intent serviceIntent = new Intent(this, NavigationService.class);
-//        this.startService(serviceIntent);
-
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-
-                MainActivity.this.startForegroundService(serviceIntent);
-            } else {
-                startService(serviceIntent);
-            }
-        }
-    }
-
 
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
@@ -571,17 +546,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         }
         Log.d(TAG, "isLocationServiceRunning: location service is not running.");
-        return false;
-    }
-    private boolean isNavigationServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.bikeology.bikemaps.services.NavigationService".equals(service.service.getClassName())) {
-                Log.d(TAG, "isNavigationServiceRunning: navigation service is already running.");
-                return true;
-            }
-        }
-        Log.d(TAG, "isNavigationServiceRunning: navigation service is not running.");
         return false;
     }
 
@@ -646,7 +610,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         );
         DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
 
-        directions.alternatives(false);
+        directions.alternatives(true);
         directions.origin(
                 new com.google.maps.model.LatLng(
                         mUserLocation.getGeo_point().getLatitude(),
@@ -657,12 +621,30 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
             @Override
             public void onResult(DirectionsResult result) {
-                Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
-                Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
-                Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
-                Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
+                int shortestRoute = -1;
+                long shortestDistance = -1;
+                for (int i = 0; i < result.routes.length; i++) {
+                    long routeDistance = 0;
+                    for (int j = 0; j < result.routes[i].legs.length; j++) {
+                        routeDistance += result.routes[i].legs[j].distance.inMeters;
+                    }
+                    if (shortestRoute == -1 || routeDistance < shortestDistance) {
+                        shortestRoute = i;
+                        shortestDistance = routeDistance;
+                    }
+                }
+                Log.d(TAG, "shortestRoute: " + shortestRoute);
+                Log.d(TAG, "route length: " + result.routes.length);
+                if (shortestRoute == -1) {
+                    // no routes
+                } else {
+                    Log.d(TAG, "calculateDirections: routes: " + result.routes[shortestRoute].toString());
+                    Log.d(TAG, "calculateDirections: duration: " + result.routes[shortestRoute].legs[0].duration);
+                    Log.d(TAG, "calculateDirections: distance: " + result.routes[shortestRoute].legs[0].distance);
+                    //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
 
-                addPolylinesToMap(result);
+                    addPolylinesToMap(result, shortestRoute);
+                }
 
             }
 
