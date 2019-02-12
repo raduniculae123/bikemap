@@ -574,7 +574,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         for(LatLng latLngPoint : lstLatLngRoute)
             boundsBuilder.include(latLngPoint);
 
-        int routePadding=250;
+        int routePadding=450;
         LatLngBounds latLngBounds = boundsBuilder.build();
 
         googleMap.animateCamera(
