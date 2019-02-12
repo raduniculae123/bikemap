@@ -62,10 +62,9 @@
                                   <option name="values">
                                     <map>
                                       <entry key="backgroundAssetType" value="COLOR" />
-                                      <entry key="backgroundLayerName" value="ic_launcher_background" />
-                                      <entry key="foregroundImage" value="C:\Users\narut\AndroidStudioProjects\BikeMaps\app\src\main\res\mipmap-xxxhdpi\app_icon_512x512.png" />
-                                      <entry key="foregroundLayerName" value="ic_launcher_foreground" />
-                                      <entry key="outputName" value="ic_launcher_new" />
+                                      <entry key="backgroundColor" value="57a99f" />
+                                      <entry key="foregroundImage" value="M:\Bike Maps\App Icon\app_icon_v3_512x512_rectangle.png" />
+                                      <entry key="outputName" value="ic_launcher_v3" />
                                     </map>
                                   </option>
                                 </PersistentState>
