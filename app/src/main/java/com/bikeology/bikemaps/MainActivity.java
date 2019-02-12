@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bikeology.bikemaps.services.LocationService;
+import com.bikeology.bikemaps.services.NavigationService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.Status;
@@ -82,7 +83,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private FusedLocationProviderClient mFusedLocationClient;
     private UserLocation mUserLocation;
     private FirebaseFirestore mDb;
-    private GoogleMap googleMap;
+    public static GoogleMap googleMap;
     private static final float DEFAULT_ZOOM = 15f;
     private Marker marker;
     private PlaceAutocompleteFragment autocompleteFragment;
@@ -546,6 +547,20 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         }
     }
+    private void startNavigationService() {
+        if (!isNavigationServiceRunning()) {
+            Intent serviceIntent = new Intent(this, NavigationService.class);
+//        this.startService(serviceIntent);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+                MainActivity.this.startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+        }
+    }
+
 
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
@@ -558,6 +573,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         Log.d(TAG, "isLocationServiceRunning: location service is not running.");
         return false;
     }
+    private boolean isNavigationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("com.bikeology.bikemaps.services.NavigationService".equals(service.service.getClassName())) {
+                Log.d(TAG, "isNavigationServiceRunning: navigation service is already running.");
+                return true;
+            }
+        }
+        Log.d(TAG, "isNavigationServiceRunning: navigation service is not running.");
+        return false;
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

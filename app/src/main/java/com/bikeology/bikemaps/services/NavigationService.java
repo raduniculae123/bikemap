@@ -19,6 +19,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.bikeology.bikemaps.MainActivity;
 import com.bikeology.bikemaps.R;
 import com.bikeology.bikemaps.UserClient;
 import com.bikeology.bikemaps.UserLocation;
@@ -27,6 +28,9 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,9 +41,9 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.auth.User;
 
 
-public class LocationService extends Service {
+public class NavigationService extends Service {
 
-    private static final String TAG = "LocationService";
+    private static final String TAG = "NavigationService";
 
     private FusedLocationProviderClient mFusedLocationClient;
     private final static long UPDATE_INTERVAL = 2 * 1000;  /* 2 secs */
@@ -111,14 +115,26 @@ public class LocationService extends Service {
                             String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
                             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                             UserLocation userLocation = new UserLocation(geoPoint, null, userId, userEmail);
-                            saveUserLocation(userLocation);
+
+                            LatLng myLatLng = new LatLng(userLocation.getGeo_point().getLatitude(),
+                                    userLocation.getGeo_point().getLongitude());
+
+                            CameraPosition navigationCamera =new CameraPosition.Builder()
+                                    .target(myLatLng)
+                                    .zoom(20)
+                                    .bearing(userLocation.getBearing())
+                                    .tilt(30)
+                                    .build();
+                            MainActivity.googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(navigationCamera));
+
+                            //saveUserLocation(userLocation);
                         }
                     }
                 },
                 Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
 
-    private void saveUserLocation(final UserLocation userLocation){
+    /*private void saveUserLocation(final UserLocation userLocation){
 
         try{
             DocumentReference locationRef = FirebaseFirestore.getInstance()
@@ -141,6 +157,6 @@ public class LocationService extends Service {
             stopSelf();
         }
 
-    }
+    }*/
 
 }
