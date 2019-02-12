@@ -17,12 +17,14 @@ public class UserLocation {
     private String userId;
     private String userEmail;
     private float bearing;
+    private int avgspeed=20;
 
-    public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail) {
+    public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail, int avgspeed) {
         this.geo_point = geo_point;
         this.timestamp = timestamp;
         this.userId = userId;
         this.userEmail = userEmail;
+        this.avgspeed = avgspeed;
 
     }
 
@@ -30,7 +32,13 @@ public class UserLocation {
 
     }
 
+    public int getavgspeed() {
+        return avgspeed;
+    }
 
+    public void setavgspeed(int avgspeed) {
+        this.avgspeed = avgspeed;
+    }
 
     public GeoPoint getGeo_point() {
         return geo_point;
@@ -80,6 +88,7 @@ public class UserLocation {
                 ", userId=" + userId +
                 ", userEmail=" + userEmail +
                 ", bearing=" + bearing +
+                ", avgspeed=" + avgspeed +
                 '}';
     }
 }
