@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
@@ -25,6 +26,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,30 +74,64 @@ import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
+    //FINAL VALUES
     private static final String TAG = "MainActivity";
+    private static final float DEFAULT_ZOOM = 15f;
+
+
+    //LOCATION
     private boolean mLocationPermissionGranted = false;
-    private MapView mMapView;
     private FusedLocationProviderClient mFusedLocationClient;
+    private GeoApiContext mGeoApiContext = null;
+
+
+    //MAP
+    private MapView mMapView;
+    public static GoogleMap googleMap;
+    private Marker marker;
+    private Polyline mPolyline;
+    private Button button_recenter;
+
+
+    //FIREBASE
     private UserLocation mUserLocation;
     private FirebaseFirestore mDb;
-    public static GoogleMap googleMap;
-    private static final float DEFAULT_ZOOM = 15f;
-    private Marker marker;
-    private PlaceAutocompleteFragment autocompleteFragment;
-    private Button button_recenter, button_fastrt, button_joyrt, button_website, button_endtrip;
+
+    //PLACE
     private PlaceInfo Place;
-    private GeoApiContext mGeoApiContext = null;
+    private Place mPlace;
+
+    //SEARCH BAR
+    private PlaceAutocompleteFragment autocompleteFragment;
+    private CardView searchCard;
+
+    //INFO CARD
     private CardView infoCard;
+
     private TextView infoTextName;
     private TextView infoTextAddress;
+
+    private Button button_fastrt;
+    private Button button_joyrt;
+    private Button button_website;
+    private Button button_phone;
+
+    //NAV CARD
     private CardView navCard;
+
     private TextView navText;
-    private Button button_nav_yes, button_nav_cancel;
-    private Place mPlace;
-    private boolean isRouteCalculated = false;
-    private Polyline mPolyline;
+
+    private Button button_nav_yes;
+    private Button button_nav_cancel;
+
+    //NAVIGATION MODE
     private BroadcastReceiver locationReceiver;
+    private Button button_endtrip;
+
+    //BOOLEANS
+    private boolean isRouteCalculated = false;
     private boolean navYes = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,24 +139,58 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         setContentView(R.layout.activity_main);
         setupDrawer();
 
+        // FIND BY ID
+
+        // SEARCH BAR
+        autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        searchCard = findViewById(R.id.searchCard);
+
+        // INFO CARD -------------------------------
         infoCard = findViewById(R.id.card_info);
         infoCard.setVisibility(View.GONE);
+
+        // info text
         infoTextName = findViewById(R.id.text_place_name);
         infoTextAddress = findViewById(R.id.text_place_address);
+
+        // info buttons
         button_website = findViewById(R.id.button_website);
-        button_endtrip = findViewById(R.id.endtrip);
-        button_endtrip.setVisibility(View.GONE);
+        button_website = findViewById(R.id.button_phone);
+        button_fastrt = findViewById(R.id.btn_fastrt);
+        button_joyrt = findViewById(R.id.btn_joyrt);
+
+        //------------------------------------------
+
+
+        // NAV CARD --------------------------------
         navCard = findViewById(R.id.card_navigate);
         navCard.setVisibility(View.GONE);
+
+        // nav text
         navText = findViewById(R.id.text_nav_to);
+
+        //nav buttons
         button_nav_yes = findViewById(R.id.button_nav_yes);
         button_nav_cancel = findViewById(R.id.button_nav_cancel);
+        //------------------------------------------
 
+        // recenter button
+        button_recenter = findViewById(R.id.button_recenter);
+
+        // end trip button
+        button_endtrip = findViewById(R.id.endtrip);
+        button_endtrip.setVisibility(View.GONE);
+
+
+
+        // delay of 2 seconds at onCreate
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
 
             @Override
             public void run() {
+
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
@@ -130,47 +200,29 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }, 2000);
 
 
-        button_fastrt = (Button) findViewById(R.id.btn_fastrt);
+        // calculate route button
         button_fastrt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 calculateDirections(marker);
                 infoCard.setVisibility(View.GONE);
                 navCard.setVisibility(View.VISIBLE);
+                searchCard.setVisibility(View.GONE);
+
                 navText.setText("Navigate to " + mPlace.getName() + "?");
                 isRouteCalculated = true;
             }
         });
 
-
-        button_joyrt = (Button) findViewById(R.id.btn_joyrt);
+        // joy route button
         button_joyrt.setVisibility(View.GONE);
 
-        button_nav_cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                infoCard.setVisibility(View.VISIBLE);
-                navCard.setVisibility(View.GONE);
-                navText.clearComposingText();
-                googleMap.clear();
-                LatLng latLng = mPlace.getLatLng();
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
-                MarkerOptions options = new MarkerOptions()
-                        .position(latLng)
-                        .title(mPlace.getName().toString());
-                marker = googleMap.addMarker(options);
-                googleMap.addMarker(options);
-                button_fastrt.setVisibility(View.VISIBLE);
-                // button_joyrt.setVisibility(View.VISIBLE);
-                isRouteCalculated = false;
-                navYes = false;
-            }
-        });
-
+        // nav yes button
         button_nav_yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 button_endtrip.setVisibility(View.VISIBLE);
+                button_recenter.setVisibility(View.GONE);
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
 
@@ -180,7 +232,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 mPolyline.setWidth(30);
 
                 navCard.setVisibility(View.GONE);
-
+                searchCard.setVisibility(View.GONE);
 
                 CameraPosition povCamera = new CameraPosition.Builder()
                         .target(myLatLng)      // Sets the center of the map to Mountain View
@@ -193,10 +245,29 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         });
 
+        // nav cancel button
+        button_nav_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                infoCard.setVisibility(View.VISIBLE);
+                navCard.setVisibility(View.GONE);
+                searchCard.setVisibility(View.VISIBLE);
+                navText.clearComposingText();
+                googleMap.clear();
+                LatLng latLng = mPlace.getLatLng();
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                MarkerOptions options = new MarkerOptions()
+                        .position(latLng)
+                        .title(mPlace.getName().toString());
+                marker = googleMap.addMarker(options);
+                googleMap.addMarker(options);
+                button_fastrt.setVisibility(View.VISIBLE);
+                isRouteCalculated = false;
+                navYes = false;
+            }
+        });
 
-        button_joyrt.setVisibility(View.GONE);
-        button_fastrt.setVisibility(View.GONE);
-        button_recenter = (Button) findViewById(R.id.button_recenter);
+        // recenter button
         button_recenter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -228,14 +299,34 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     button_fastrt.setVisibility(View.VISIBLE);
                 } else button_fastrt.setVisibility(View.GONE);
 
-               /* if (button_joyrt.getVisibility() == View.VISIBLE) {
-                    button_joyrt.setVisibility(View.VISIBLE);
-                } else button_joyrt.setVisibility(View.GONE);*/
+            }
+        });
+
+        // end trip button
+        button_endtrip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                infoCard.setVisibility(View.VISIBLE);
+                navCard.setVisibility(View.GONE);
+                searchCard.setVisibility(View.VISIBLE);
+                navText.clearComposingText();
+                googleMap.clear();
+                LatLng latLng = mPlace.getLatLng();
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                MarkerOptions options = new MarkerOptions()
+                        .position(latLng)
+                        .title(mPlace.getName().toString());
+                marker = googleMap.addMarker(options);
+                googleMap.addMarker(options);
+                button_fastrt.setVisibility(View.VISIBLE);
+                button_endtrip.setVisibility(View.GONE);
+                isRouteCalculated = false;
+                navYes = false;
 
             }
         });
 
-
+        // navigation mode camera updater
         locationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -264,9 +355,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        autocompleteFragment = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
-
+        // SEARCH BAR
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -298,12 +387,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 final Uri website;
                 website = place.getWebsiteUri();
-                button_website.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        startActivity(new Intent(Intent.ACTION_VIEW, website));
-                    }
-                });
+
+                    button_website.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, website));
+                        }
+                    });
             }
 
             @Override
@@ -313,6 +403,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         });
 
+        // clear button
         autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override

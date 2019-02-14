@@ -17,6 +17,7 @@
     <string name="fastride">Calculate route</string>
     <string name="joyride">Joy route</string>
     <string name="button_website">Website</string>
+    <string name="button_phone">Phone</string>
     <!--Navigate Card-->
     <string name="button_nav_yes">Yes</string>
     <string name="button_nav_cancel">Cancel</string>
