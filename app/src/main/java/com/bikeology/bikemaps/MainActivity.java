@@ -4,9 +4,11 @@ import android.Manifest;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -33,10 +35,8 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -51,13 +51,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.auth.User;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PendingResult;
@@ -82,13 +78,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private FusedLocationProviderClient mFusedLocationClient;
     private UserLocation mUserLocation;
     private FirebaseFirestore mDb;
-    private GoogleMap googleMap;
+    public static GoogleMap googleMap;
     private static final float DEFAULT_ZOOM = 15f;
     private Marker marker;
     private PlaceAutocompleteFragment autocompleteFragment;
-    private Button button_recenter,button_fastrt,button_joyrt, button_website;
+    private Button button_recenter, button_fastrt, button_joyrt, button_website, button_endtrip;
     private PlaceInfo Place;
-    private ImageView icInfo;
     private GeoApiContext mGeoApiContext = null;
     private CardView infoCard;
     private TextView infoTextName;
@@ -99,6 +94,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private Place mPlace;
     private boolean isRouteCalculated = false;
     private Polyline mPolyline;
+    private BroadcastReceiver locationReceiver;
+    private boolean navYes = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,32 +108,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         infoTextName = findViewById(R.id.text_place_name);
         infoTextAddress = findViewById(R.id.text_place_address);
         button_website = findViewById(R.id.button_website);
-
+        button_endtrip = findViewById(R.id.endtrip);
+        button_endtrip.setVisibility(View.GONE);
         navCard = findViewById(R.id.card_navigate);
         navCard.setVisibility(View.GONE);
         navText = findViewById(R.id.text_nav_to);
         button_nav_yes = findViewById(R.id.button_nav_yes);
         button_nav_cancel = findViewById(R.id.button_nav_cancel);
 
-        icInfo = findViewById(R.id.place_info);
-        icInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "onClick : clicked place info");
-                try {
-                    if (marker.isInfoWindowShown()) {
-                        marker.hideInfoWindow();
-                    } else {
-                        marker.showInfoWindow();
-                        Log.e(TAG, "onClick : place Info " + Place.toString());
-
-                    }
-                } catch (NullPointerException e) {
-                    Log.e(TAG, "onClick : NullPointerException: " + e.getMessage());
-
-                }
-            }
-        });
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
 
@@ -148,7 +127,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
             }
 
-        }, 1000);
+        }, 2000);
 
 
         button_fastrt = (Button) findViewById(R.id.btn_fastrt);
@@ -165,13 +144,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
 
         button_joyrt = (Button) findViewById(R.id.btn_joyrt);
-        button_joyrt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                /////////
-                /////////
-            }
-        });
+        button_joyrt.setVisibility(View.GONE);
+
         button_nav_cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -187,72 +161,103 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 marker = googleMap.addMarker(options);
                 googleMap.addMarker(options);
                 button_fastrt.setVisibility(View.VISIBLE);
-                button_joyrt.setVisibility(View.VISIBLE);
+                // button_joyrt.setVisibility(View.VISIBLE);
                 isRouteCalculated = false;
+                navYes = false;
             }
         });
 
         button_nav_yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                button_endtrip.setVisibility(View.VISIBLE);
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
 
-                CameraPosition navigationCamera =new CameraPosition.Builder()
-                        .target(myLatLng)
-                        .zoom(20)
-                        .bearing(mUserLocation.getBearing())
-                        .tilt(30)
-                        .build();
-                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(navigationCamera));
+                navYes = true;
 
                 mPolyline.setColor(Color.rgb(255, 0, 0));
                 mPolyline.setWidth(30);
+
+                navCard.setVisibility(View.GONE);
+
+
+                CameraPosition povCamera = new CameraPosition.Builder()
+                        .target(myLatLng)      // Sets the center of the map to Mountain View
+                        .zoom(25)                   // Sets the zoom
+                        .bearing(mUserLocation.getBearing())                // Sets the orientation of the camera to east
+                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                        .build();                   // Creates a CameraPosition from the builder
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
+
             }
         });
 
 
-
-
         button_joyrt.setVisibility(View.GONE);
         button_fastrt.setVisibility(View.GONE);
-        icInfo.setVisibility(View.GONE);
         button_recenter = (Button) findViewById(R.id.button_recenter);
         button_recenter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
 
-                if (icInfo.getVisibility() == View.VISIBLE) {
-                    icInfo.setVisibility(View.VISIBLE);
-                } else icInfo.setVisibility(View.GONE);
-
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
+                if (navYes) {
+                    CameraPosition navigationCamera = new CameraPosition.Builder()
+                            .target(myLatLng)
+                            .zoom(25)
+                            .bearing(mUserLocation.getBearing())
+                            .tilt(30)
+                            .build();
 
-                CameraPosition centeredCamera =new CameraPosition.Builder()
-                        .target(myLatLng)
-                        .zoom(DEFAULT_ZOOM)
-                        .bearing(0)
-                        .tilt(0)
-                        .build();
+                    googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(navigationCamera));
+                }
+                else {
+                    CameraPosition centeredCamera = new CameraPosition.Builder()
+                            .target(myLatLng)
+                            .zoom(DEFAULT_ZOOM)
+                            .bearing(0)
+                            .tilt(0)
+                            .build();
 
-                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
-
+                    googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
+                }
                 if (button_fastrt.getVisibility() == View.VISIBLE) {
                     button_fastrt.setVisibility(View.VISIBLE);
                 } else button_fastrt.setVisibility(View.GONE);
 
-                if (button_joyrt.getVisibility() == View.VISIBLE) {
+               /* if (button_joyrt.getVisibility() == View.VISIBLE) {
                     button_joyrt.setVisibility(View.VISIBLE);
-                } else button_joyrt.setVisibility(View.GONE);
+                } else button_joyrt.setVisibility(View.GONE);*/
 
             }
         });
 
 
+        locationReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if(!navYes)
+                    return;
+                Location location = intent.getExtras().getParcelable("location");
+                float bearing = intent.getExtras().getFloat("bearing");
+                Log.d(TAG, "update camera valid : " + location);
+                LatLng myLatLng = new LatLng(location.getLatitude(),
+                        location.getLongitude());
+                CameraPosition povCamera = new CameraPosition.Builder()
+                        .target(myLatLng)      // Sets the center of the map to Mountain View
+                        .zoom(25)                   // Sets the zoom
+                        .bearing(bearing)                // Sets the orientation of the camera to east
+                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                        .build();                   // Creates a CameraPosition from the builder
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
 
 
+            }
+        };
+        getApplicationContext().registerReceiver(locationReceiver, new IntentFilter("BM_Location"));
 
 
         initGoogleMap(savedInstanceState);
@@ -262,15 +267,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
+
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
 
                 // TODO: Get info about the selected place.
+                googleMap.clear();
                 mPlace = place;
                 Log.i(TAG, "Place: " + mPlace.getName());
                 googleMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MainActivity.this));
-                icInfo.setVisibility(View.VISIBLE);
                 LatLng latLng = mPlace.getLatLng();
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
                 String snippet = "Address: " + mPlace.getAddress() + "\n" +
@@ -288,7 +294,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 infoTextAddress.setText(mPlace.getAddress());
                 infoCard.setVisibility(View.VISIBLE);
                 button_fastrt.setVisibility(View.VISIBLE);
-                button_joyrt.setVisibility(View.VISIBLE);
+                // button_joyrt.setVisibility(View.VISIBLE);
 
                 final Uri website;
                 website = place.getWebsiteUri();
@@ -296,7 +302,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     @Override
                     public void onClick(View view) {
                         startActivity(new Intent(Intent.ACTION_VIEW, website));
-
                     }
                 });
             }
@@ -312,22 +317,23 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        button_endtrip.setVisibility(View.GONE);
                         googleMap.clear();
                         marker.remove();
                         infoTextName.clearComposingText();
                         infoTextAddress.clearComposingText();
                         infoCard.setVisibility(View.GONE);
-                        icInfo.setVisibility(view.GONE);
                         autocompleteFragment.setText("");
                         button_joyrt.setVisibility(View.GONE);
                         button_fastrt.setVisibility(View.GONE);
                         navCard.setVisibility(View.GONE);
                         navText.clearComposingText();
-                        if(isRouteCalculated) {
+                        if (isRouteCalculated) {
                             LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                                     mUserLocation.getGeo_point().getLongitude());
                             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
                         }
+                        navYes = false;
 
                     }
                 });
@@ -335,36 +341,41 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
 
-    private void addPolylinesToMap(final DirectionsResult result){
+    private void addPolylinesToMap(final DirectionsResult result, final int shortestRoute) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
                 Log.d(TAG, "run: result routes: " + result.routes.length);
 
-                for(DirectionsRoute route: result.routes){
-                    Log.d(TAG, "run: leg: " + route.legs[0].toString());
-                    List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
+                if (shortestRoute == -1) {
+                    // Log error
+                    return;
+                }
+                DirectionsRoute route = result.routes[shortestRoute];
+                //for(DirectionsRoute route: result.routes){
+                Log.d(TAG, "run: leg: " + route.legs[0].toString());
+                List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
 
-                    List<LatLng> newDecodedPath = new ArrayList<>();
+                List<LatLng> newDecodedPath = new ArrayList<>();
 
-                    // This loops through all the LatLng coordinates of ONE polyline.
-                    for(com.google.maps.model.LatLng latLng: decodedPath){
+                // This loops through all the LatLng coordinates of ONE polyline.
+                for (com.google.maps.model.LatLng latLng : decodedPath) {
 
 //                        Log.d(TAG, "run: latlng: " + latLng.toString());
 
-                        newDecodedPath.add(new LatLng(
-                                latLng.lat,
-                                latLng.lng
-                        ));
-                    }
-                    mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                    mPolyline.setColor(-7829368);
-                    mPolyline.setClickable(false);
-                    zoomRoute(mPolyline.getPoints());
-                    button_fastrt.setVisibility(View.GONE);
-                    button_joyrt.setVisibility(View.GONE);
-
+                    newDecodedPath.add(new LatLng(
+                            latLng.lat,
+                            latLng.lng
+                    ));
                 }
+                mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                mPolyline.setColor(-7829368);
+                mPolyline.setClickable(false);
+                zoomRoute(mPolyline.getPoints());
+                button_fastrt.setVisibility(View.GONE);
+                button_joyrt.setVisibility(View.GONE);
+
+                //}
             }
         });
     }
@@ -414,6 +425,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     mUserLocation.setGeo_point(geoPoint);
                     mUserLocation.setTimestamp(null);
                     mUserLocation.setBearing(location.getBearing());
+                    mUserLocation.setAvgSpeed(mUserLocation.getAvgSpeed());
                     saveUserLocation();
                     startLocationService();
                 }
@@ -435,7 +447,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         mMapView.getMapAsync(this);
 
 
-        if (mGeoApiContext == null){
+        if (mGeoApiContext == null) {
 
             mGeoApiContext = new GeoApiContext.Builder()
                     .apiKey(getString(R.string.google_maps_api_key))
@@ -559,6 +571,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         return false;
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -577,13 +590,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private void zoomRoute(List<LatLng> lstLatLngRoute) {
 
-        if(googleMap == null || lstLatLngRoute == null || lstLatLngRoute.isEmpty()) return;
+        if (googleMap == null || lstLatLngRoute == null || lstLatLngRoute.isEmpty()) return;
 
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
-        for(LatLng latLngPoint : lstLatLngRoute)
+        for (LatLng latLngPoint : lstLatLngRoute)
             boundsBuilder.include(latLngPoint);
 
-        int routePadding=250;
+        int routePadding=450;
         LatLngBounds latLngBounds = boundsBuilder.build();
 
         googleMap.animateCamera(
@@ -610,7 +623,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         googleMap.clear();
     }
 
-    private void calculateDirections(Marker marker){
+    private void calculateDirections(Marker marker) {
         Log.d(TAG, "calculateDirections: calculating directions.");
 
         com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
@@ -619,7 +632,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         );
         DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
 
-        directions.alternatives(false);
+        directions.alternatives(true);
         directions.origin(
                 new com.google.maps.model.LatLng(
                         mUserLocation.getGeo_point().getLatitude(),
@@ -630,18 +643,36 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
             @Override
             public void onResult(DirectionsResult result) {
-                Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
-                Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
-                Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
-                Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
+                int shortestRoute = -1;
+                long shortestDistance = -1;
+                for (int i = 0; i < result.routes.length; i++) {
+                    long routeDistance = 0;
+                    for (int j = 0; j < result.routes[i].legs.length; j++) {
+                        routeDistance += result.routes[i].legs[j].distance.inMeters;
+                    }
+                    if (shortestRoute == -1 || routeDistance < shortestDistance) {
+                        shortestRoute = i;
+                        shortestDistance = routeDistance;
+                    }
+                }
+                Log.d(TAG, "shortestRoute: " + shortestRoute);
+                Log.d(TAG, "route length: " + result.routes.length);
+                if (shortestRoute == -1) {
+                    // no routes
+                } else {
+                    Log.d(TAG, "calculateDirections: routes: " + result.routes[shortestRoute].toString());
+                    Log.d(TAG, "calculateDirections: duration: " + result.routes[shortestRoute].legs[0].duration);
+                    Log.d(TAG, "calculateDirections: distance: " + result.routes[shortestRoute].legs[0].distance);
+                    //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
 
-                addPolylinesToMap(result);
+                    addPolylinesToMap(result, shortestRoute);
+                }
 
             }
 
             @Override
             public void onFailure(Throwable e) {
-                Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage() );
+                Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage());
 
             }
         });
@@ -664,6 +695,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     protected void onResume() {
         super.onResume();
         mMapView.onResume();
+        navYes = false;
         if (checkMapServices()) {
             if (mLocationPermissionGranted) {
                 getLastKnownLocation();

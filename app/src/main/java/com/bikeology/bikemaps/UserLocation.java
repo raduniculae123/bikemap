@@ -1,6 +1,7 @@
 package com.bikeology.bikemaps;
 
 import android.location.Location;
+import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.GeoPoint;
@@ -12,33 +13,25 @@ import java.util.Date;
 public class UserLocation {
 
     private GeoPoint geo_point;
-    private @ServerTimestamp
-    Date timestamp;
+    private @ServerTimestamp Date timestamp;
     private String userId;
     private String userEmail;
     private float bearing;
-    private int avgspeed=20;
+    private int avgSpeed = 20;
 
-    public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail, int avgspeed) {
+    public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail, int avgSpeed) {
         this.geo_point = geo_point;
         this.timestamp = timestamp;
         this.userId = userId;
         this.userEmail = userEmail;
-        this.avgspeed = avgspeed;
-
+        this.avgSpeed = avgSpeed;
     }
 
     public UserLocation() {
 
     }
 
-    public int getavgspeed() {
-        return avgspeed;
-    }
 
-    public void setavgspeed(int avgspeed) {
-        this.avgspeed = avgspeed;
-    }
 
     public GeoPoint getGeo_point() {
         return geo_point;
@@ -80,6 +73,14 @@ public class UserLocation {
         this.bearing = bearing;
     }
 
+    public int getAvgSpeed() {
+        return avgSpeed;
+    }
+
+    public void setAvgSpeed(int avgSpeed) {
+        this.avgSpeed = avgSpeed;
+    }
+
     @Override
     public String toString() {
         return "UserLocation{" +
@@ -88,7 +89,7 @@ public class UserLocation {
                 ", userId=" + userId +
                 ", userEmail=" + userEmail +
                 ", bearing=" + bearing +
-                ", avgspeed=" + avgspeed +
+                ", avgSpeed=" + avgSpeed +
                 '}';
     }
 }
