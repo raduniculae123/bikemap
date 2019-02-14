@@ -6,7 +6,7 @@
     <string name="button_my_coordinates">MY COORDINATES</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
-
+    <string name="endtrip">End trip</string>
     <string name="nav_map">Map</string>
     <string name="nav_my_account">My Account</string>
     <string name="nav_settings">Settings</string>
@@ -14,7 +14,7 @@
     <string name="nav_header_title">Navigation header</string>
     <string name="button_recenter">RECENTER</string>
     <!--Info Card-->
-    <string name="fastride">Fast route</string>
+    <string name="fastride">Calculate route</string>
     <string name="joyride">Joy route</string>
     <string name="button_website">Website</string>
     <!--Navigate Card-->
