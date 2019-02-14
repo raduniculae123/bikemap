@@ -124,6 +124,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private Button button_nav_yes;
     private Button button_nav_cancel;
 
+    private ProgressBar calculateRouteProgressBar;
+
     //NAVIGATION MODE
     private BroadcastReceiver locationReceiver;
     private Button button_endtrip;
@@ -169,10 +171,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         // nav text
         navText = findViewById(R.id.text_nav_to);
+        navText.setVisibility(View.GONE);
 
         //nav buttons
         button_nav_yes = findViewById(R.id.button_nav_yes);
         button_nav_cancel = findViewById(R.id.button_nav_cancel);
+        button_nav_yes.setVisibility(View.GONE);
+        button_nav_cancel.setVisibility(View.GONE);
+
+
+        // progress bar
+        calculateRouteProgressBar = findViewById(R.id.calculateRoutePregressBar);
+        calculateRouteProgressBar.setVisibility(View.GONE);
         //------------------------------------------
 
         // recenter button
@@ -204,6 +214,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         button_fastrt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                calculateRouteProgressBar.setVisibility(View.VISIBLE);
+
                 calculateDirections(marker);
                 infoCard.setVisibility(View.GONE);
                 navCard.setVisibility(View.VISIBLE);
@@ -211,6 +223,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 navText.setText("Navigate to " + mPlace.getName() + "?");
                 isRouteCalculated = true;
+
             }
         });
 
@@ -227,6 +240,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         mUserLocation.getGeo_point().getLongitude());
 
                 navYes = true;
+                Log.d(TAG, "navYes true");
 
                 mPolyline.setColor(Color.rgb(255, 0, 0));
                 mPolyline.setWidth(30);
@@ -238,7 +252,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         .target(myLatLng)      // Sets the center of the map to Mountain View
                         .zoom(25)                   // Sets the zoom
                         .bearing(mUserLocation.getBearing())                // Sets the orientation of the camera to east
-                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                        .tilt(60)                   // Sets the tilt of the camera to 30 degrees
                         .build();                   // Creates a CameraPosition from the builder
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
 
@@ -251,6 +265,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 infoCard.setVisibility(View.VISIBLE);
                 navCard.setVisibility(View.GONE);
+                button_nav_yes.setVisibility(View.GONE);
+                button_nav_cancel.setVisibility(View.GONE);
                 searchCard.setVisibility(View.VISIBLE);
                 navText.clearComposingText();
                 googleMap.clear();
@@ -312,7 +328,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 navText.clearComposingText();
                 googleMap.clear();
                 LatLng latLng = mPlace.getLatLng();
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                CameraPosition centeredCamera = new CameraPosition.Builder()
+                        .target(latLng)
+                        .zoom(DEFAULT_ZOOM)
+                        .bearing(0)
+                        .tilt(0)
+                        .build();
+
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
                 MarkerOptions options = new MarkerOptions()
                         .position(latLng)
                         .title(mPlace.getName().toString());
@@ -320,6 +343,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 googleMap.addMarker(options);
                 button_fastrt.setVisibility(View.VISIBLE);
                 button_endtrip.setVisibility(View.GONE);
+                button_recenter.setVisibility(View.VISIBLE);
                 isRouteCalculated = false;
                 navYes = false;
 
@@ -341,7 +365,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         .target(myLatLng)      // Sets the center of the map to Mountain View
                         .zoom(25)                   // Sets the zoom
                         .bearing(bearing)                // Sets the orientation of the camera to east
-                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                        .tilt(60)                   // Sets the tilt of the camera to 30 degrees
                         .build();                   // Creates a CameraPosition from the builder
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
 
@@ -463,6 +487,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 mPolyline.setColor(-7829368);
                 mPolyline.setClickable(false);
                 zoomRoute(mPolyline.getPoints());
+                calculateRouteProgressBar.setVisibility(View.GONE);
+                button_nav_yes.setVisibility(View.VISIBLE);
+                button_nav_cancel.setVisibility(View.VISIBLE);
+                navText.setVisibility(View.VISIBLE);
+
                 button_fastrt.setVisibility(View.GONE);
                 button_joyrt.setVisibility(View.GONE);
 
@@ -715,6 +744,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     private void calculateDirections(Marker marker) {
+        //calculateRouteProgressBar.setVisibility(View.VISIBLE);
+
         Log.d(TAG, "calculateDirections: calculating directions.");
 
         com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
@@ -755,6 +786,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     Log.d(TAG, "calculateDirections: duration: " + result.routes[shortestRoute].legs[0].duration);
                     Log.d(TAG, "calculateDirections: distance: " + result.routes[shortestRoute].legs[0].distance);
                     //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
+                    //calculateRouteProgressBar.setVisibility(View.GONE);
 
                     addPolylinesToMap(result, shortestRoute);
                 }
