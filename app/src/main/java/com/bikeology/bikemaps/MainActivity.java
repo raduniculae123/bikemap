@@ -523,7 +523,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private void getLastKnownLocation() {
         Log.d(TAG, "getLastKnownLocation: called.");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
@@ -744,7 +747,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     private void calculateDirections(Marker marker) {
-        //calculateRouteProgressBar.setVisibility(View.VISIBLE);
 
         Log.d(TAG, "calculateDirections: calculating directions.");
 
@@ -786,7 +788,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     Log.d(TAG, "calculateDirections: duration: " + result.routes[shortestRoute].legs[0].duration);
                     Log.d(TAG, "calculateDirections: distance: " + result.routes[shortestRoute].legs[0].distance);
                     //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
-                    //calculateRouteProgressBar.setVisibility(View.GONE);
 
                     addPolylinesToMap(result, shortestRoute);
                 }

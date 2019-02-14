@@ -3,7 +3,6 @@
 
     <string name="app_name">Bike Maps</string>
     <string name="settings_title">Settings</string>
-    <string name="button_my_coordinates">MY COORDINATES</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
     <string name="endtrip">End trip</string>
@@ -29,7 +28,6 @@
     <string name="change_email">Change Email</string>
     <string name="change_password">Change Password</string>
     <string name="send_password_reset_email">Send Password reset email</string>
-    <string name="remove_user">Remove user</string>
     <string name="new_pass">New Password</string>
     <string name="title_activity_profile">Firebase</string>
     <string name="title_activity_login">Sign in</string>
@@ -52,7 +50,6 @@
     <string name="lbl_forgot_password">Forgot password?</string>
     <string name="forgot_password_msg">We just need your registered Email Id to sent you password reset instructions.</string>
     <string name="email_id">Email ID</string>
-
     <string name="collection_user_locations">User Locations</string>
 
 </resources>
