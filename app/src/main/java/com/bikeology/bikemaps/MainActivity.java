@@ -115,20 +115,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         navText = findViewById(R.id.text_nav_to);
         button_nav_yes = findViewById(R.id.button_nav_yes);
         button_nav_cancel = findViewById(R.id.button_nav_cancel);
-        {
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
 
-                @Override
-                public void run() {
-                    LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
-                            mUserLocation.getGeo_point().getLongitude());
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
 
-                }
+            @Override
+            public void run() {
+                LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude());
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
 
-            }, 1000);
-        }
+            }
+
+        }, 1000);
 
 
         button_fastrt = (Button) findViewById(R.id.btn_fastrt);
@@ -201,6 +200,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         button_recenter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
                 if (navYes) {
@@ -238,7 +239,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         locationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (!navYes)
+                if(!navYes)
                     return;
                 Location location = intent.getExtras().getParcelable("location");
                 float bearing = intent.getExtras().getFloat("bearing");
@@ -252,6 +253,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         .tilt(30)                   // Sets the tilt of the camera to 30 degrees
                         .build();                   // Creates a CameraPosition from the builder
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
+
 
             }
         };
@@ -453,6 +455,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }
 
 
+
+
     }
 
     private boolean checkMapServices() {
@@ -591,7 +595,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         for (LatLng latLngPoint : lstLatLngRoute)
             boundsBuilder.include(latLngPoint);
 
-        int routePadding = 450;
+        int routePadding=450;
         LatLngBounds latLngBounds = boundsBuilder.build();
 
         googleMap.animateCamera(
@@ -602,6 +606,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
 
     }
+
+
 
 
     private void movemyCamera(LatLng latLng, float zoom, String title) {
