@@ -53,6 +53,7 @@ public class LocationService extends Service {
     private GeoPoint geoPoint;
     private UserLocation userLocation;
     private Location location;
+    private int avgSpeed;
 
 
     @Nullable
@@ -120,7 +121,8 @@ public class LocationService extends Service {
                             userId = FirebaseAuth.getInstance().getUid();
                             userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
                             geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            userLocation = new UserLocation(geoPoint, null, userId, userEmail);
+                            avgSpeed = 20;
+                            userLocation = new UserLocation(geoPoint, null, userId, userEmail, avgSpeed);
                             broadcastUserLocation(userLocation);
                             saveUserLocation(userLocation);
                         }

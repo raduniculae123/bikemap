@@ -17,13 +17,14 @@ public class UserLocation {
     private String userId;
     private String userEmail;
     private float bearing;
+    private int avgSpeed = 20;
 
-    public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail) {
+    public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail, int avgSpeed) {
         this.geo_point = geo_point;
         this.timestamp = timestamp;
         this.userId = userId;
         this.userEmail = userEmail;
-
+        this.avgSpeed = avgSpeed;
     }
 
     public UserLocation() {
@@ -72,6 +73,14 @@ public class UserLocation {
         this.bearing = bearing;
     }
 
+    public int getAvgSpeed() {
+        return avgSpeed;
+    }
+
+    public void setAvgSpeed(int avgSpeed) {
+        this.avgSpeed = avgSpeed;
+    }
+
     @Override
     public String toString() {
         return "UserLocation{" +
@@ -80,6 +89,7 @@ public class UserLocation {
                 ", userId=" + userId +
                 ", userEmail=" + userEmail +
                 ", bearing=" + bearing +
+                ", avgSpeed=" + avgSpeed +
                 '}';
     }
 }

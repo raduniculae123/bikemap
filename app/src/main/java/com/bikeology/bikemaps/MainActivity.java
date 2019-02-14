@@ -127,7 +127,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
             }
 
-        }, 1000);
+        }, 2000);
 
 
         button_fastrt = (Button) findViewById(R.id.btn_fastrt);
@@ -425,6 +425,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     mUserLocation.setGeo_point(geoPoint);
                     mUserLocation.setTimestamp(null);
                     mUserLocation.setBearing(location.getBearing());
+                    mUserLocation.setAvgSpeed(mUserLocation.getAvgSpeed());
                     saveUserLocation();
                     startLocationService();
                 }

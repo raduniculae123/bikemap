@@ -17,12 +17,16 @@
         android:roundIcon="@mipmap/ic_launcher_v3_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".SplashActivity">
+        </activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
             </intent-filter>
+
         </activity>
 
         <meta-data
@@ -39,17 +43,22 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings_title" />
-        <activity android:name=".AccountActivity.LoginActivity"
-            android:label="Login"/>
-        <activity android:name=".AccountActivity.SignupActivity"
-            android:label="Sign Up"/>
-        <activity android:name=".AccountActivity.ResetPasswordActivity"
-            android:label="Reset Password"/>
-        <activity android:name=".AccountActivity.AccountActivity"
-            android:label="Account"/>
+        <activity
+            android:name=".AccountActivity.LoginActivity"
+            android:label="Login" />
+        <activity
+            android:name=".AccountActivity.SignupActivity"
+            android:label="Sign Up" />
+        <activity
+            android:name=".AccountActivity.ResetPasswordActivity"
+            android:label="Reset Password" />
+        <activity
+            android:name=".AccountActivity.AccountActivity"
+            android:label="Account" />
 
-        <service android:name=".services.LocationService"
-            android:stopWithTask="true"/>
+        <service
+            android:name=".services.LocationService"
+            android:stopWithTask="true" />
     </application>
 
 </manifest>
