@@ -18,6 +18,7 @@
     <string name="joyride">Joy route</string>
     <string name="button_website">Website</string>
     <!--Navigate Card-->
+    <string name="durationView">Duration</string>
     <string name="button_nav_yes">Yes</string>
     <string name="button_nav_cancel">Cancel</string>
     <!--register&login-->
