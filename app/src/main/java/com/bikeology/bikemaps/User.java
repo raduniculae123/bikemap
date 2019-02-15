@@ -15,6 +15,7 @@ public class User implements Parcelable{
         this.user_id = user_id;
         this.username = username;
         this.avatar = avatar;
+
     }
 
     public User() {

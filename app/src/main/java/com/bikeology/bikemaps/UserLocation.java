@@ -17,7 +17,7 @@ public class UserLocation {
     private String userId;
     private String userEmail;
     private float bearing;
-    private long avgSpeed = 20;
+    private long avgSpeed=20;
 
     public UserLocation(GeoPoint geo_point, Date timestamp, String userId, String userEmail, long avgSpeed) {
         this.geo_point = geo_point;

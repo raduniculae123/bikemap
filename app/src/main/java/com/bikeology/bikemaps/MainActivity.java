@@ -144,8 +144,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
 
     //avg speed updater
-    private Date startTime;
-    private Date endTime;
+    private long startTime;
+    private long endTime;
     private long tripSpeed;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -258,14 +258,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 navYes = true;
                 Log.d(TAG, "navYes true");
 
-                startTime = mUserLocation.getTimestamp();
-                endTime = mUserLocation.getTimestamp();
-
-                tripDuration = (endTime.getTime() - startTime.getTime())*1000*60;
-
-                tripSpeed=shrtDst/tripDuration;
-
-                mUserLocation.setAvgSpeed((mUserLocation.getAvgSpeed()+tripSpeed)/2);
+                startTime = System.currentTimeMillis()/1000;
 
                 mPolyline.setColor(Color.rgb(255, 0, 0));
                 mPolyline.setWidth(30);
@@ -365,13 +358,24 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
 
-                endTime = mUserLocation.getTimestamp();
+                endTime = System.currentTimeMillis()/1000;
+                tripDuration = (endTime - startTime);
 
-                tripDuration = (endTime.getTime() - startTime.getTime())*1000*60;
+                Log.d(TAG, "aaatrip duration" + tripDuration);
 
-                tripSpeed=shrtDst/tripDuration;
+                Log.d(TAG, "aaashrtdst" + shrtDst);
 
+                tripSpeed=(shrtDst*1000)/(tripDuration*3600);
+
+
+                Log.d(TAG, "aaatrip speed" + tripSpeed);
+
+                Log.d(TAG, "aaaavgspd speed" + mUserLocation.getAvgSpeed());
                 mUserLocation.setAvgSpeed((mUserLocation.getAvgSpeed()+tripSpeed)/2);
+
+                //UPLOAD FIREBASE AVGSPEED
+
+                Log.d(TAG, "aaasetavgspd" + (mUserLocation.getAvgSpeed()+tripSpeed)/2);
 
 
                 MarkerOptions options = new MarkerOptions()
@@ -599,6 +603,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     mUserLocation.setTimestamp(null);
                     mUserLocation.setBearing(location.getBearing());
                     mUserLocation.setAvgSpeed(mUserLocation.getAvgSpeed());
+                    Log.d(TAG, "avgspped" + mUserLocation.getAvgSpeed());
+
+
                     saveUserLocation();
                     startLocationService();
                 }
