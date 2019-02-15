@@ -65,6 +65,7 @@ import com.google.maps.model.DirectionsRoute;
 
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
@@ -139,8 +140,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private long durationLong;
     private long shrtDst;
     private TextView durationTextView;
+    private long tripDuration;
 
 
+    //avg speed updater
+    private Date startTime;
+    private Date endTime;
+    private long tripSpeed;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -191,7 +197,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         calculateRouteProgressBar.setVisibility(View.GONE);
         //------------------------------------------
 
-        // recenter button
+        // recenter buttona
         button_recenter = findViewById(R.id.button_recenter);
 
         // end trip button
@@ -252,6 +258,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 navYes = true;
                 Log.d(TAG, "navYes true");
 
+                startTime = mUserLocation.getTimestamp();
+                endTime = mUserLocation.getTimestamp();
+
+                tripDuration = (endTime.getTime() - startTime.getTime())*1000*60;
+
+                tripSpeed=shrtDst/tripDuration;
+
+                mUserLocation.setAvgSpeed((mUserLocation.getAvgSpeed()+tripSpeed)/2);
+
                 mPolyline.setColor(Color.rgb(255, 0, 0));
                 mPolyline.setWidth(30);
 
@@ -275,6 +290,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 infoCard.setVisibility(View.VISIBLE);
                 navCard.setVisibility(View.GONE);
+
                 button_nav_yes.setVisibility(View.GONE);
                 button_nav_cancel.setVisibility(View.GONE);
                 searchCard.setVisibility(View.VISIBLE);
@@ -335,6 +351,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 infoCard.setVisibility(View.VISIBLE);
                 navCard.setVisibility(View.GONE);
+                durationTextView.setVisibility(View.GONE);
                 searchCard.setVisibility(View.VISIBLE);
                 navText.clearComposingText();
                 googleMap.clear();
@@ -347,6 +364,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         .build();
 
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
+
+                endTime = mUserLocation.getTimestamp();
+
+                tripDuration = (endTime.getTime() - startTime.getTime())*1000*60;
+
+                tripSpeed=shrtDst/tripDuration;
+
+                mUserLocation.setAvgSpeed((mUserLocation.getAvgSpeed()+tripSpeed)/2);
+
+
                 MarkerOptions options = new MarkerOptions()
                         .position(latLng)
                         .title(mPlace.getName().toString());
