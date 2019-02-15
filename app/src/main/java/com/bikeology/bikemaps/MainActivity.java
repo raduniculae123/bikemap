@@ -134,6 +134,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private boolean isRouteCalculated = false;
     private boolean navYes = false;
 
+    // avg speed calculator
+
+    private long durationLong;
+    private long shrtDst;
+    private TextView durationTextView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,6 +197,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         // end trip button
         button_endtrip = findViewById(R.id.endtrip);
         button_endtrip.setVisibility(View.GONE);
+
+        // trip duration
+        durationTextView = findViewById(R.id.durationTextView);
+        durationTextView.setVisibility(View.GONE);
 
 
 
@@ -269,6 +279,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_nav_cancel.setVisibility(View.GONE);
                 searchCard.setVisibility(View.VISIBLE);
                 navText.clearComposingText();
+                durationTextView.setVisibility(View.GONE);
                 googleMap.clear();
                 LatLng latLng = mPlace.getLatLng();
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
@@ -361,6 +372,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 Log.d(TAG, "update camera valid : " + location);
                 LatLng myLatLng = new LatLng(location.getLatitude(),
                         location.getLongitude());
+                durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
+                durationTextView.setText("Trip duration: " + durationLong + " minutes");
+
+
                 CameraPosition povCamera = new CameraPosition.Builder()
                         .target(myLatLng)      // Sets the center of the map to Mountain View
                         .zoom(25)                   // Sets the zoom
@@ -491,6 +506,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_nav_yes.setVisibility(View.VISIBLE);
                 button_nav_cancel.setVisibility(View.VISIBLE);
                 navText.setVisibility(View.VISIBLE);
+
+                durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
+                durationTextView.setText("Trip duration: " + durationLong + " minutes");
+                durationTextView.setVisibility(View.VISIBLE);
+                durationTextView.bringToFront();
+
+                Log.d(TAG, "shrtDst: " + shrtDst);
+                Log.d(TAG, "avgSpeed: " + mUserLocation.getAvgSpeed());
 
                 button_fastrt.setVisibility(View.GONE);
                 button_joyrt.setVisibility(View.GONE);
@@ -789,6 +812,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     Log.d(TAG, "calculateDirections: distance: " + result.routes[shortestRoute].legs[0].distance);
                     //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
 
+                    shrtDst = result.routes[shortestRoute].legs[0].distance.inMeters;
                     addPolylinesToMap(result, shortestRoute);
                 }
 
