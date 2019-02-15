@@ -53,7 +53,7 @@ public class LocationService extends Service {
     private GeoPoint geoPoint;
     private UserLocation userLocation;
     private Location location;
-    private int avgSpeed;
+    private long avgSpeed;
 
 
     @Nullable

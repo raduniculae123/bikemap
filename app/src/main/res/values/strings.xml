@@ -22,6 +22,7 @@
     <string name="rating">RATING:</string>
     <string name="ratingValue">5</string>
     <!--Navigate Card-->
+    <string name="durationView">Duration</string>
     <string name="button_nav_yes">Yes</string>
     <string name="button_nav_cancel">Cancel</string>
     <!--register&login-->
@@ -54,6 +55,7 @@
     <string name="lbl_forgot_password">Forgot password?</string>
     <string name="forgot_password_msg">We just need your registered Email Id to sent you password reset instructions.</string>
     <string name="email_id">Email ID</string>
+
     <string name="collection_user_locations">User Locations</string>
 
 </resources>
