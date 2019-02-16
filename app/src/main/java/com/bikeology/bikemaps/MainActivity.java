@@ -27,9 +27,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bikeology.bikemaps.AccountActivity.LoginActivity;
 import com.bikeology.bikemaps.services.LocationService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -111,11 +113,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private TextView infoTextName;
     private TextView infoTextAddress;
+    private TextView ratingText;
+    private TextView ratingValue;
 
     private Button button_fastrt;
     private Button button_joyrt;
     private Button button_website;
     private Button button_phone;
+    private RatingBar ratingBar;
 
     //NAV CARD
     private CardView navCard;
@@ -167,12 +172,21 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         // info text
         infoTextName = findViewById(R.id.text_place_name);
         infoTextAddress = findViewById(R.id.text_place_address);
+        ratingText = findViewById(R.id.ratingText);
+        ratingValue = findViewById(R.id.ratingValue);
 
         // info buttons
         button_website = findViewById(R.id.button_website);
         button_website = findViewById(R.id.button_phone);
         button_fastrt = findViewById(R.id.btn_fastrt);
         button_joyrt = findViewById(R.id.btn_joyrt);
+
+        // info rating
+        ratingBar = findViewById(R.id.ratingBar);
+        ratingBar.setNumStars(5);
+        ratingBar.setIsIndicator(true);
+        ratingBar.setMax(5);
+        ratingBar.setStepSize(0.1f);
 
         //------------------------------------------
 
@@ -267,11 +281,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 searchCard.setVisibility(View.GONE);
 
                 CameraPosition povCamera = new CameraPosition.Builder()
-                        .target(myLatLng)      // Sets the center of the map to Mountain View
-                        .zoom(25)                   // Sets the zoom
-                        .bearing(mUserLocation.getBearing())                // Sets the orientation of the camera to east
-                        .tilt(60)                   // Sets the tilt of the camera to 30 degrees
-                        .build();                   // Creates a CameraPosition from the builder
+                        .target(myLatLng)
+                        .zoom(25)
+                        .bearing(210)
+                        .tilt(60)
+                        .build();
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
 
             }
@@ -347,6 +361,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 durationTextView.setVisibility(View.GONE);
                 searchCard.setVisibility(View.VISIBLE);
                 navText.clearComposingText();
+                durationTextView.setVisibility(View.GONE);
                 googleMap.clear();
                 LatLng latLng = mPlace.getLatLng();
                 CameraPosition centeredCamera = new CameraPosition.Builder()
@@ -386,6 +401,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_fastrt.setVisibility(View.VISIBLE);
                 button_endtrip.setVisibility(View.GONE);
                 button_recenter.setVisibility(View.VISIBLE);
+                durationTextView.setVisibility(View.GONE);
                 isRouteCalculated = false;
                 navYes = false;
 
@@ -408,11 +424,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
 
                 CameraPosition povCamera = new CameraPosition.Builder()
-                        .target(myLatLng)      // Sets the center of the map to Mountain View
-                        .zoom(25)                   // Sets the zoom
-                        .bearing(bearing)                // Sets the orientation of the camera to east
-                        .tilt(60)                   // Sets the tilt of the camera to 30 degrees
-                        .build();                   // Creates a CameraPosition from the builder
+                        .target(myLatLng)
+                        .zoom(25)
+                        .bearing(210)
+                        .tilt(60)
+                        .build();
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
 
 
@@ -424,6 +440,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         initGoogleMap(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        if(FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        }
+
 
         // SEARCH BAR
 
@@ -451,6 +473,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 isRouteCalculated = false;
                 infoTextName.setText(mPlace.getName());
                 infoTextAddress.setText(mPlace.getAddress());
+                ratingBar.setRating(mPlace.getRating());
+                ratingValue.setText(String.valueOf(mPlace.getRating()));
+                Log.d(TAG, "rating: " + mPlace.getRating());
                 infoCard.setVisibility(View.VISIBLE);
                 button_fastrt.setVisibility(View.VISIBLE);
                 // button_joyrt.setVisibility(View.VISIBLE);
@@ -464,6 +489,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                             startActivity(new Intent(Intent.ACTION_VIEW, website));
                         }
                     });
+                    final String phone;
+                    phone = place.getPhoneNumber().toString();
+                    button_phone.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        /*Intent callIntent = new Intent(Intent.ACTION_CALL);
+                        callIntent.setData(Uri.parse(phone));
+                        startActivity(callIntent);*/
+                    }
+                });
+
+
             }
 
             @Override
