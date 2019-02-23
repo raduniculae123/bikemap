@@ -177,7 +177,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         // info buttons
         button_website = findViewById(R.id.button_website);
-        button_website = findViewById(R.id.button_phone);
+        button_phone = findViewById(R.id.button_phone);
         button_fastrt = findViewById(R.id.btn_fastrt);
         button_joyrt = findViewById(R.id.btn_joyrt);
 
@@ -473,6 +473,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 isRouteCalculated = false;
                 infoTextName.setText(mPlace.getName());
                 infoTextAddress.setText(mPlace.getAddress());
+                ratingBar.setVisibility(View.VISIBLE);
+                ratingValue.setVisibility(View.VISIBLE);
+                ratingText.setVisibility(View.VISIBLE);
+                if(mPlace.getRating()<0)
+                {
+                    ratingBar.setVisibility(View.GONE);
+                    ratingValue.setVisibility(View.GONE);
+                    ratingText.setVisibility(View.GONE);
+                }
                 ratingBar.setRating(mPlace.getRating());
                 ratingValue.setText(String.valueOf(mPlace.getRating()));
                 Log.d(TAG, "rating: " + mPlace.getRating());
@@ -489,14 +498,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                             startActivity(new Intent(Intent.ACTION_VIEW, website));
                         }
                     });
-                    final String phone;
-                    phone = place.getPhoneNumber().toString();
                     button_phone.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        /*Intent callIntent = new Intent(Intent.ACTION_CALL);
-                        callIntent.setData(Uri.parse(phone));
-                        startActivity(callIntent);*/
+                        String phone;
+                        phone = mPlace.getPhoneNumber().toString();
+                        Intent phoneIntent = new Intent(Intent.ACTION_DIAL);
+                        phoneIntent.setData(Uri.parse("tel:"+phone));
+                        startActivity(phoneIntent);
                     }
                 });
 
