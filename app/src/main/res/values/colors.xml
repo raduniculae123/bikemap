@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#027166</color>
-    <color name="colorPrimaryDark">#5e6866</color>
+    <color name="colorPrimaryDark">#027166</color>
     <color name="colorAccent">#027166</color>
 
 
@@ -21,5 +21,6 @@
     <color name="btn_login_bg">#eceef1</color>
     <color name="lbl_name">#333333</color>
     <color name="btn_logut_bg">#7c100b</color>
+
     <color name="card_btn">#57a99f</color>
 </resources>

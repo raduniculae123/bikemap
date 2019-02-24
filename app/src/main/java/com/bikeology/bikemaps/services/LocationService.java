@@ -21,8 +21,10 @@ import android.util.Log;
 
 import com.bikeology.bikemaps.MainActivity;
 import com.bikeology.bikemaps.R;
+import com.bikeology.bikemaps.TripUpdater;
 import com.bikeology.bikemaps.UserClient;
 import com.bikeology.bikemaps.UserLocation;
+import com.bikeology.bikemaps.UserTrips;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -36,9 +38,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.auth.User;
+
+import java.util.Map;
 
 
 public class LocationService extends Service {
@@ -54,6 +59,8 @@ public class LocationService extends Service {
     private UserLocation userLocation;
     private Location location;
     private long avgSpeed;
+
+    private TripUpdater tripUpdater = new TripUpdater(this);
 
 
     @Nullable
@@ -123,8 +130,10 @@ public class LocationService extends Service {
                             geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                             avgSpeed = 20;
                             userLocation = new UserLocation(geoPoint, null, userId, userEmail, avgSpeed);
+
                             broadcastUserLocation(userLocation);
                             saveUserLocation(userLocation);
+                            tripUpdater.saveUserTrips(location);
                         }
 
                     }
@@ -164,4 +173,5 @@ public class LocationService extends Service {
         }
 
     }
+
 }

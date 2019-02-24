@@ -98,6 +98,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     //FIREBASE
     private UserLocation mUserLocation;
+    private UserTrips mUserTrips;
     private FirebaseFirestore mDb;
 
     //PLACE
@@ -931,6 +932,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 getLocationPermission();
             }
         }
+        if(FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+        }
+
     }
 
     @Override

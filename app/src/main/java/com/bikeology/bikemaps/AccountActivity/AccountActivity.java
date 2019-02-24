@@ -2,14 +2,12 @@ package com.bikeology.bikemaps.AccountActivity;
 
 import com.bikeology.bikemaps.BaseActivity;
 import com.bikeology.bikemaps.R;
-import android.support.v7.app.AppCompatActivity;
+
 import android.os.Bundle;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -19,20 +17,26 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.bikeology.bikemaps.UserDetails;
+import com.bikeology.bikemaps.UserTrips;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import static android.support.constraint.Constraints.TAG;
 
 public class AccountActivity extends BaseActivity {
 
-    private Button btnChangePassword, btnRemoveUser,
-            changePassword, remove, signOut;
+    private Button buttonEditDetails, buttonChangePassword, buttonSignOut;
     private TextView email;
+    private TextView fullName;
 
-    private EditText oldEmail, password, newPassword;
+    private EditText newPassword;
     private ProgressBar progressBar;
-    //private FirebaseAuth auth;
 
 
     @Override
@@ -42,7 +46,8 @@ public class AccountActivity extends BaseActivity {
         setupDrawer();
 //get firebase auth instance
         auth = FirebaseAuth.getInstance();
-        email = (TextView) findViewById(R.id.useremail);
+        email = findViewById(R.id.userEmail);
+        fullName = findViewById(R.id.fullNameText);
 
         //get current user
         final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -60,41 +65,35 @@ public class AccountActivity extends BaseActivity {
             }
         };
 
-        btnChangePassword = (Button) findViewById(R.id.change_password_button);
-        changePassword = (Button) findViewById(R.id.changePass);
-        signOut = (Button) findViewById(R.id.sign_out);
+        buttonEditDetails = findViewById(R.id.button_edit_details);
+        buttonChangePassword = findViewById(R.id.button_change_password);
+        buttonSignOut = findViewById(R.id.button_sign_out);
 
-        oldEmail = (EditText) findViewById(R.id.old_email);
-        password = (EditText) findViewById(R.id.password);
-        newPassword = (EditText) findViewById(R.id.newPassword);
+        newPassword = findViewById(R.id.newPassword);
 
-        oldEmail.setVisibility(View.GONE);
-        password.setVisibility(View.GONE);
         newPassword.setVisibility(View.GONE);
-        changePassword.setVisibility(View.GONE);
+        buttonChangePassword.setVisibility(View.GONE);
 
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar = findViewById(R.id.accountProgressBar);
 
         if (progressBar != null) {
             progressBar.setVisibility(View.GONE);
         }
 
 
-        btnChangePassword.setOnClickListener(new View.OnClickListener() {
+        buttonEditDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                oldEmail.setVisibility(View.GONE);
 
-                password.setVisibility(View.GONE);
                 newPassword.setVisibility(View.VISIBLE);
 
-                changePassword.setVisibility(View.VISIBLE);
+                buttonChangePassword.setVisibility(View.VISIBLE);
 
 
             }
         });
 
-        changePassword.setOnClickListener(new View.OnClickListener() {
+        buttonChangePassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
@@ -128,7 +127,7 @@ public class AccountActivity extends BaseActivity {
 
 
 
-        signOut.setOnClickListener(new View.OnClickListener() {
+        buttonSignOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 signOut();
@@ -138,10 +137,12 @@ public class AccountActivity extends BaseActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    private void setDataToView(FirebaseUser user) {
+    private void setDataToView(final FirebaseUser user) {
 
         if(user != null)
-            email.setText("User Email: " + user.getEmail());
+            email.setText(user.getEmail());
+        UserDetails userDetails = new UserDetails();
+        fullName.setText(userDetails.getFirstName() + " " + userDetails.getLastName());
     }
 
     // this listener will be called when there is change in firebase user session
