@@ -37,6 +37,9 @@ public class AccountActivity extends BaseActivity {
 
     private EditText newPassword;
     private ProgressBar progressBar;
+    private UserDetails userDetails = new UserDetails();
+    private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
 
 
     @Override
@@ -50,7 +53,7 @@ public class AccountActivity extends BaseActivity {
         fullName = findViewById(R.id.fullNameText);
 
         //get current user
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+       //final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         setDataToView(user);
         authListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -85,10 +88,8 @@ public class AccountActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
 
-                newPassword.setVisibility(View.VISIBLE);
-
-                buttonChangePassword.setVisibility(View.VISIBLE);
-
+                startActivity(new Intent(AccountActivity.this, EditDetailsActivity.class));
+                finish();
 
             }
         });
@@ -141,8 +142,34 @@ public class AccountActivity extends BaseActivity {
 
         if(user != null)
             email.setText(user.getEmail());
-        UserDetails userDetails = new UserDetails();
-        fullName.setText(userDetails.getFirstName() + " " + userDetails.getLastName());
+        //fullName.setText(userDetails.getFirstName() + " " + userDetails.getLastName());
+
+        final DocumentReference nameRef = FirebaseFirestore.getInstance()
+                .collection(getString(R.string.collection_user_details))
+                .document(FirebaseAuth.getInstance().getUid());
+        nameRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document != null) {
+                        userDetails  = document.toObject(UserDetails.class);
+                        if(userDetails == null){
+                            Log.d(TAG, "Name null");
+
+                        }
+                        else{
+                            fullName.setText(userDetails.getFirstName() + " " + userDetails.getLastName());
+                            Log.d(TAG, "Name updated");
+                        }
+                        return;
+                    }
+
+                } else {
+                    Log.d(TAG,"userDetails failed");
+                }
+            }
+        });
     }
 
     // this listener will be called when there is change in firebase user session
@@ -189,12 +216,14 @@ public class AccountActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         progressBar.setVisibility(View.GONE);
+        setDataToView(user);
     }
 
     @Override
     public void onStart() {
         super.onStart();
         auth.addAuthStateListener(authListener);
+        setDataToView(user);
     }
 
     @Override

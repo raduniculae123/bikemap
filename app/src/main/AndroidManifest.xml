@@ -17,8 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_v3_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".AccountActivity.UserDetailsActivity"></activity>
-        <activity android:name=".SplashActivity"></activity>
+        <activity android:name=".SplashActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -54,6 +53,13 @@
         <activity
             android:name=".AccountActivity.AccountActivity"
             android:label="Account" />
+        <activity
+            android:name=".AccountActivity.EditDetailsActivity"
+            android:label="Edit Details"/>
+        <activity
+            android:name=".AccountActivity.UserDetailsActivity"
+            android:label="Sign Up"/>
+
 
         <service
             android:name=".services.LocationService"

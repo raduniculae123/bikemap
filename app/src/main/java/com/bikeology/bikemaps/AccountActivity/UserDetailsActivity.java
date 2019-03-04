@@ -94,5 +94,13 @@ public class UserDetailsActivity extends BaseActivity {
             }
         });
 
+        button_skip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(UserDetailsActivity.this, LoginActivity.class));
+                finish();
+            }
+        });
+
     }
 }

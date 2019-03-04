@@ -31,6 +31,7 @@
     <string name="action_sign_in_short">Register</string>
     <string name="submit_user_details">Submit</string>
     <string name="skip">Skip this step</string>
+    <string name="cancel">Cancel</string>
     <string name="email">Email</string>
     <string name="minimum_password">Password too short, enter minimum 6 characters!</string>
     <string name="auth_failed">Authentication failed, check your email and password or sign up</string>
@@ -45,6 +46,7 @@
     <string name="hint_lastname">Last Name</string>
     <string name="hint_password">Password</string>
     <string name="hint_name">Fullname</string>
+    <string name="hint_change_password">Change password</string>
     <string name="btn_login">LOGIN</string>
     <string name="prompt_password">Please enter your password</string>
     <string name="btn_link_to_register">Don\'t have an account? Register now!</string>

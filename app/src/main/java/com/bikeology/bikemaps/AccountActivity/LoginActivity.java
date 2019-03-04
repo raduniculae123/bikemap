@@ -34,8 +34,8 @@ public class LoginActivity extends BaseActivity {
         auth = FirebaseAuth.getInstance();
 
         if (auth.getCurrentUser() != null) {
-            //startActivity(new Intent(LoginActivity.this, SignupActivity.class));
-            //finish();
+            startActivity(new Intent(LoginActivity.this, AccountActivity.class));
+            finish();
         }
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
