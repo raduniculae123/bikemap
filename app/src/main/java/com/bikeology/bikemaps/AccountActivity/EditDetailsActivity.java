@@ -46,6 +46,9 @@ public class EditDetailsActivity extends BaseActivity {
     private String newFirstName;
     private String newLastName;
 
+    private String fNameHint;
+    private String lNameHint;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +60,9 @@ public class EditDetailsActivity extends BaseActivity {
         setNavigationViewListener();
         updateHeader();
 
+        Intent intent = getIntent();
+        fNameHint = intent.getStringExtra("fName");
+        lNameHint = intent.getStringExtra("lName");
 
         button_submit = findViewById(R.id.submit_button);
         button_cancel = findViewById(R.id.cancel_button);
@@ -64,6 +70,9 @@ public class EditDetailsActivity extends BaseActivity {
         lastName = findViewById(R.id.lastName);
         changePassword = findViewById(R.id.changePassword);
         progressBar = findViewById(R.id.detailsProgressBar);
+
+        firstName.setHint(fNameHint);
+        lastName.setHint(lNameHint);
 
         isPasswordUpdated = false;
 

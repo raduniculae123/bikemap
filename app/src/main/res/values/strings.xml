@@ -46,7 +46,7 @@
     <string name="hint_lastname">Last Name</string>
     <string name="hint_password">Password</string>
     <string name="hint_name">Fullname</string>
-    <string name="hint_change_password">Change password</string>
+    <string name="hint_change_password">New password (optional)</string>
     <string name="btn_login">LOGIN</string>
     <string name="prompt_password">Please enter your password</string>
     <string name="btn_link_to_register">Don\'t have an account? Register now!</string>

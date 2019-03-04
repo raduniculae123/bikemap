@@ -88,7 +88,10 @@ public class AccountActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
 
-                startActivity(new Intent(AccountActivity.this, EditDetailsActivity.class));
+                Intent i = new Intent(AccountActivity.this, EditDetailsActivity.class);
+                i.putExtra("fName", userDetails.getFirstName());
+                i.putExtra("lName", userDetails.getLastName());
+                startActivity(i);
                 finish();
 
             }
