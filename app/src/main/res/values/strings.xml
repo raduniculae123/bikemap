@@ -64,6 +64,10 @@
     <string name="forgot_password_msg">Please enter your registered email so we can send you password reset instructions.</string>
     <string name="email_id">Email ID</string>
 
+    <string name="total_distance">Total distance:</string>
+    <string name="average_speed">Average speed:</string>
+
+
     <string name="collection_user_locations">User Locations</string>
     <string name="collection_user_trips">User Trips</string>
     <string name="collection_user_details">User Details</string>

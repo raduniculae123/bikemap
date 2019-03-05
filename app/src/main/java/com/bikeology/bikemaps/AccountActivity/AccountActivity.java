@@ -31,11 +31,13 @@ import static android.support.constraint.Constraints.TAG;
 
 public class AccountActivity extends BaseActivity {
 
-    private Button buttonEditDetails, buttonChangePassword, buttonSignOut;
+    private Button buttonEditDetails, buttonSignOut;
     private TextView email;
     private TextView fullName;
 
-    private EditText newPassword;
+    private TextView totalDistance;
+    private TextView averageSpeed;
+
     private ProgressBar progressBar;
     private UserDetails userDetails = new UserDetails();
     private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -51,6 +53,9 @@ public class AccountActivity extends BaseActivity {
         auth = FirebaseAuth.getInstance();
         email = findViewById(R.id.userEmail);
         fullName = findViewById(R.id.fullNameText);
+
+        totalDistance = findViewById(R.id.totalDistanceValue);
+        averageSpeed = findViewById(R.id.averageSpeedValue);
 
         //get current user
        //final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -69,13 +74,7 @@ public class AccountActivity extends BaseActivity {
         };
 
         buttonEditDetails = findViewById(R.id.button_edit_details);
-        buttonChangePassword = findViewById(R.id.button_change_password);
         buttonSignOut = findViewById(R.id.button_sign_out);
-
-        newPassword = findViewById(R.id.newPassword);
-
-        newPassword.setVisibility(View.GONE);
-        buttonChangePassword.setVisibility(View.GONE);
 
         progressBar = findViewById(R.id.accountProgressBar);
 
@@ -92,44 +91,9 @@ public class AccountActivity extends BaseActivity {
                 i.putExtra("fName", userDetails.getFirstName());
                 i.putExtra("lName", userDetails.getLastName());
                 startActivity(i);
-                finish();
 
             }
         });
-
-        buttonChangePassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                if (user != null && !newPassword.getText().toString().trim().equals("")) {
-                    if (newPassword.getText().toString().trim().length() < 6) {
-                        newPassword.setError("Password too short, enter minimum 6 characters");
-                        progressBar.setVisibility(View.GONE);
-                    } else {
-                        user.updatePassword(newPassword.getText().toString().trim())
-                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if (task.isSuccessful()) {
-                                            Toast.makeText(AccountActivity.this, "Password is updated, sign in with new password!", Toast.LENGTH_SHORT).show();
-                                            signOut();
-                                            progressBar.setVisibility(View.GONE);
-                                        } else {
-                                            Toast.makeText(AccountActivity.this, "Failed to update password!", Toast.LENGTH_SHORT).show();
-                                            progressBar.setVisibility(View.GONE);
-                                        }
-                                    }
-                                });
-                    }
-                } else if (newPassword.getText().toString().trim().equals("")) {
-                    newPassword.setError("Enter password");
-                    progressBar.setVisibility(View.GONE);
-                }
-            }
-        });
-
-
-
 
         buttonSignOut.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,6 +134,29 @@ public class AccountActivity extends BaseActivity {
 
                 } else {
                     Log.d(TAG,"userDetails failed");
+                }
+            }
+        });
+
+        final DocumentReference tripsRef = FirebaseFirestore.getInstance()
+                .collection(getString(R.string.collection_user_trips))
+                .document(FirebaseAuth.getInstance().getUid());
+        tripsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document != null) {
+                        UserTrips userTrips  = document.toObject(UserTrips.class);
+                        if(userTrips != null){
+                            totalDistance.setText(Long.toString(userTrips.getTotalDistance()) + " km");
+                            averageSpeed.setText(Long.toString(userTrips.getAvgSpeed()) + " km/h");
+                        }
+                        return;
+                    }
+
+                } else {
+                    Log.d("userTrips", "get failed with ", task.getException());
                 }
             }
         });

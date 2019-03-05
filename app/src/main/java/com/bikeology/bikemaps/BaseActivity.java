@@ -10,6 +10,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,8 +19,15 @@ import com.google.android.gms.maps.model.LatLng;
 
 import com.bikeology.bikemaps.AccountActivity.AccountActivity;
 import com.bikeology.bikemaps.AccountActivity.LoginActivity;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import static android.support.constraint.Constraints.TAG;
 
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -28,6 +36,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     protected FirebaseAuth auth;
     protected View headView;
     protected TextView headerTitle;
+    protected TextView headerName;
 
 
 
@@ -46,10 +55,33 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         if(FirebaseAuth.getInstance().getCurrentUser() == null)
         {
             headerTitle.setText("Not signed in");
+            headerName.clearComposingText();
         }
         else
         {
             headerTitle.setText(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+            final DocumentReference nameRef = FirebaseFirestore.getInstance()
+                    .collection(getString(R.string.collection_user_details))
+                    .document(FirebaseAuth.getInstance().getUid());
+            nameRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document != null) {
+                            UserDetails userDetails  = document.toObject(UserDetails.class);
+                            if(userDetails == null){
+
+                            }
+                            else{
+                                headerName.setText(userDetails.getFirstName() + " " + userDetails.getLastName());
+                            }
+                            return;
+                        }
+
+                    }
+                }
+            });
         }
     }
 
@@ -67,7 +99,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
         headView = navigationView.getHeaderView(0);
         headerTitle = headView.findViewById(R.id.nav_header_title);
-
+        headerName = headView.findViewById(R.id.nav_header_name);
     }
 
 
