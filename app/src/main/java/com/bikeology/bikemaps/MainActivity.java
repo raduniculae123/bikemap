@@ -603,18 +603,24 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     private double getStepBearing(int i){
-        double lat1 = directionsResult.legs[0].steps[i].startLocation.lat; // point A from leg lat
-        double lon1 = directionsResult.legs[0].steps[i].startLocation.lng;  // point A from leg lng
+        double lat1 = Math.toRadians(directionsResult.legs[0].steps[i].startLocation.lat); // point A from leg lat
+        double lon1 = Math.toRadians(directionsResult.legs[0].steps[i].startLocation.lng);  // point A from leg lng
 
-        double lat2 = directionsResult.legs[0].steps[i].endLocation.lat;   // point B from leg lat
-        double lon2 = directionsResult.legs[0].steps[i].endLocation.lng;   // point B from leg lng
+        double lat2 = Math.toRadians(directionsResult.legs[0].steps[i].endLocation.lat);   // point B from leg lat
+        double lon2 = Math.toRadians(directionsResult.legs[0].steps[i].endLocation.lng);   // point B from leg lng
+
+        Log.i(TAG, "lat1: " + lat1);
+        Log.i(TAG, "lat2: " + lat2);
+        Log.i(TAG, "long1: " + lon1);
+        Log.i(TAG, "long2: " + lon2);
+
         //where	φ is latitude, λ is longitude
 
         double y = Math.sin(lon2 - lon1) * Math.cos(lat2);
         double x = Math.cos(lat1) * Math.sin(lat2) -
                 Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
         double brng = Math.toDegrees(atan2(y, x));
-
+        Log.i(TAG, "step bearing: " + brng);
         return brng;
     }
 
