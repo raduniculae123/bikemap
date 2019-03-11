@@ -894,6 +894,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
 
                     shrtDst = result.routes[shortestRoute].legs[0].distance.inMeters;
+
                     addPolylinesToMap(result, shortestRoute);
                 }
 
