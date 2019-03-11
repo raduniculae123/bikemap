@@ -4,6 +4,7 @@ import com.bikeology.bikemaps.BaseActivity;
 import com.bikeology.bikemaps.MainActivity;
 import com.bikeology.bikemaps.R;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 
 import android.content.Intent;
@@ -32,6 +33,8 @@ public class SignupActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         setContentView(R.layout.activity_signup);
         //Get Firebase auth instance
         auth = FirebaseAuth.getInstance();

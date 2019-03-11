@@ -2,6 +2,7 @@ package com.bikeology.bikemaps.AccountActivity;
 import com.bikeology.bikemaps.BaseActivity;
 import com.bikeology.bikemaps.R;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 
 import android.content.Intent;
@@ -27,6 +28,8 @@ public class LoginActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         setupDrawer();

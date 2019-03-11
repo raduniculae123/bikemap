@@ -1,6 +1,7 @@
 package com.bikeology.bikemaps;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -11,7 +12,6 @@ import com.google.android.gms.maps.model.Marker;
 public class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter{
 
     private final View mWindow;
-
     private Context mContext;
 
     public CustomInfoWindowAdapter(Context context) {

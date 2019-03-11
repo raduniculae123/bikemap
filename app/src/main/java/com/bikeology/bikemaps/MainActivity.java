@@ -1,5 +1,6 @@
 package com.bikeology.bikemaps;
 
+import java.lang.Math;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -69,11 +71,17 @@ import com.google.maps.model.DirectionsRoute;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
 import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
+import static java.lang.Math.acos;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
@@ -148,6 +156,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private TextView durationTextView;
     private long tripDuration;
 
+    // leg info
+    DirectionsRoute directionsResult;
 
     //avg speed updater
     private long startTime;
@@ -158,6 +168,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupDrawer();
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // FIND BY ID
 
@@ -284,7 +295,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 CameraPosition povCamera = new CameraPosition.Builder()
                         .target(myLatLng)
                         .zoom(25)
-                        .bearing(210)
+                        .bearing(mUserLocation.getBearing())
                         .tilt(60)
                         .build();
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
@@ -364,11 +375,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 navText.clearComposingText();
                 durationTextView.setVisibility(View.GONE);
                 googleMap.clear();
+                mUserLocation.setBearing(0);
                 LatLng latLng = mPlace.getLatLng();
                 CameraPosition centeredCamera = new CameraPosition.Builder()
                         .target(latLng)
                         .zoom(DEFAULT_ZOOM)
-                        .bearing(0)
+                        .bearing(mUserLocation.getBearing())
                         .tilt(0)
                         .build();
 
@@ -416,21 +428,24 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 if(!navYes)
                     return;
                 Location location = intent.getExtras().getParcelable("location");
-                float bearing = intent.getExtras().getFloat("bearing");
-                Log.d(TAG, "update camera valid : " + location);
                 LatLng myLatLng = new LatLng(location.getLatitude(),
                         location.getLongitude());
+
+                double brng = getStepBearing(getCurrentStep(location));
+
+                mUserLocation.setBearing((float)brng);
+
                 durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
                 durationTextView.setText("Trip duration: " + durationLong + " minutes");
-
 
                 CameraPosition povCamera = new CameraPosition.Builder()
                         .target(myLatLng)
                         .zoom(25)
-                        .bearing(210)
+                        .bearing((float)brng)
                         .tilt(60)
                         .build();
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
+                Log.i(TAG, "bearing=" + mUserLocation.getBearing());
 
 
             }
@@ -546,6 +561,61 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     }
                 });
 
+    }
+
+    private int getCurrentStep(Location location) {
+        double perpDst = 99999999;
+        int iStep=0;
+        Log.d(TAG, "update camera valid : " + location);
+        for(int i=0; i < directionsResult.legs[0].steps.length;i++){
+            double lat1 = directionsResult.legs[0].steps[i].startLocation.lat; // point A from leg lat
+            double lon1 = directionsResult.legs[0].steps[i].startLocation.lng;  // point A from leg lng
+
+            double lat2 = directionsResult.legs[0].steps[i].endLocation.lat;   // point B from leg lat
+            double lon2 = directionsResult.legs[0].steps[i].endLocation.lng;   // point B from leg lng
+
+            double lat3 = mUserLocation.getGeo_point().getLatitude();
+            double lon3 = mUserLocation.getGeo_point().getLongitude();
+
+            double y = sin(lon3 - lon1) * cos(lat3);
+            double x = cos(lat1) * sin(lat3) - sin(lat1) * cos(lat3) * cos(lat3 - lat1);
+            double bearing1 = Math.toDegrees(atan2(y, x));
+            bearing1 = 360 - ((bearing1 + 360) % 360);
+
+
+            double y2 = sin(lon2 - lon1) * cos(lat2);
+            double x2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lat2 - lat1);
+            double bearing2 = Math.toDegrees(atan2(y2, x2));
+            bearing2 = 360 - ((bearing2 + 360) % 360);
+
+            double lat1Rads = Math.toRadians(lat1);
+            double lat3Rads = Math.toRadians(lat3);
+            double dLon = Math.toRadians(lon3 - lon1);
+
+            double distanceAC = acos(sin(lat1Rads) * sin(lat3Rads)+cos(lat1Rads)*cos(lat3Rads)*cos(dLon)) * 6371;
+            double minDst = Math.abs(asin(sin(distanceAC/6371)*sin(Math.toRadians(bearing1)-Math.toRadians(bearing2))) * 6371);
+            if(minDst < perpDst ){
+                perpDst = minDst;
+                iStep = i;
+            }
+        }
+        return iStep;
+    }
+
+    private double getStepBearing(int i){
+        double lat1 = directionsResult.legs[0].steps[i].startLocation.lat; // point A from leg lat
+        double lon1 = directionsResult.legs[0].steps[i].startLocation.lng;  // point A from leg lng
+
+        double lat2 = directionsResult.legs[0].steps[i].endLocation.lat;   // point B from leg lat
+        double lon2 = directionsResult.legs[0].steps[i].endLocation.lng;   // point B from leg lng
+        //where	φ is latitude, λ is longitude
+
+        double y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+        double x = Math.cos(lat1) * Math.sin(lat2) -
+                Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+        double brng = Math.toDegrees(atan2(y, x));
+
+        return brng;
     }
 
 
@@ -894,7 +964,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
 
                     shrtDst = result.routes[shortestRoute].legs[0].distance.inMeters;
+                    Log.i(TAG, "legs = " + result.routes[shortestRoute].legs.length);
+                    directionsResult = result.routes[shortestRoute];
                     addPolylinesToMap(result, shortestRoute);
+
                 }
 
             }
