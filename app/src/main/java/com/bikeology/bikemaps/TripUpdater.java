@@ -12,6 +12,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
+
+import java.lang.Math;
+
 
 import static android.support.constraint.Constraints.TAG;
 
@@ -19,6 +23,12 @@ public class TripUpdater {
 
     private UserTrips userTrips;
     private Context context;
+
+    private GeoPoint oldLocation;
+    private int refreshInterval=0;
+    private boolean isUserMoving = false;
+
+    private final double minimumRefreshDistance = 0.01; // in km
 
     public TripUpdater(Context context) {
         this.context = context;
@@ -44,7 +54,7 @@ public class TripUpdater {
                 '}';
     }
 
-    public void saveUserTrips(Location location)
+    public void saveUserTrips(final Location location)
     {
         final DocumentReference tripsRef = FirebaseFirestore.getInstance()
                 .collection(context.getString(R.string.collection_user_trips))
@@ -63,17 +73,54 @@ public class TripUpdater {
 
                         }
                         else{
-                            Log.d(TAG, "userTripsUpdate");
+                            if(oldLocation == null){
+                                oldLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
+                            }
+                            else {
+                                GeoPoint newLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
+                                //refreshInterval ++;
+                                //if(refreshInterval == 5) {
+                                    //refreshInterval = 0;
+                                    calculateDistance(oldLocation, newLocation);
+
+                                    tripsRef.set(userTrips);
+                                //}
+                            }
                         }
                         return;
                     }
 
                 } else {
-                    Log.d("userTrips", "get failed with ", task.getException());
                 }
             }
         });
-        Log.d(TAG, "tripsRef = " + tripsRef);
+    }
+
+    private void calculateDistance(GeoPoint oldLocation, GeoPoint newLocation){
+        double R = 6371;
+
+        double lat1 = Math.toRadians(oldLocation.getLatitude());
+        double lat2 = Math.toRadians(newLocation.getLatitude());
+
+        double long1 = Math.toRadians(oldLocation.getLongitude());
+        double long2 = Math.toRadians(newLocation.getLongitude());
+
+        double dLat = lat2 - lat1;
+        double dLong = long2 - long1;
+
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1) * Math.cos(lat2) *
+                        Math.sin(dLong/2) * Math.sin(dLong/2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double d = R * c;
+
+        if(d > minimumRefreshDistance)
+        {
+            isUserMoving = true;
+            userTrips.setTotalDistance(userTrips.getTotalDistance() + d);
+        }
+
     }
 
 }

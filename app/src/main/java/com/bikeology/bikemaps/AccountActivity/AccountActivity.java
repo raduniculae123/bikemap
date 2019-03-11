@@ -149,7 +149,7 @@ public class AccountActivity extends BaseActivity {
                     if (document != null) {
                         UserTrips userTrips  = document.toObject(UserTrips.class);
                         if(userTrips != null){
-                            totalDistance.setText(Long.toString(userTrips.getTotalDistance()) + " km");
+                            totalDistance.setText(String.format("%.2f", userTrips.getTotalDistance()) + " km");
                             averageSpeed.setText(Long.toString(userTrips.getAvgSpeed()) + " km/h");
                         }
                         return;

@@ -3,7 +3,7 @@ package com.bikeology.bikemaps;
 public class UserTrips {
 
     private long avgSpeed;
-    private long totalDistance;
+    private double totalDistance;
     private String userEmail;
 
 
@@ -25,11 +25,11 @@ public class UserTrips {
         this.avgSpeed = avgSpeed;
     }
 
-    public long getTotalDistance() {
+    public double getTotalDistance() {
         return totalDistance;
     }
 
-    public void setTotalDistance(long totalDistance) {
+    public void setTotalDistance(double totalDistance) {
         this.totalDistance = totalDistance;
     }
 
