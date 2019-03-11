@@ -286,7 +286,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 startTime = System.currentTimeMillis()/1000;
 
-                mPolyline.setColor(Color.rgb(255, 0, 0));
+                mPolyline.setColor(Color.rgb(2, 113, 102));
                 mPolyline.setWidth(30);
 
                 navCard.setVisibility(View.GONE);
