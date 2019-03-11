@@ -967,7 +967,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     Log.i(TAG, "legs = " + result.routes[shortestRoute].legs.length);
                     directionsResult = result.routes[shortestRoute];
                     addPolylinesToMap(result, shortestRoute);
-
                 }
 
             }
