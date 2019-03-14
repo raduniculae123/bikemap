@@ -507,6 +507,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 final Uri website;
                 website = place.getWebsiteUri();
+                String web_string = website.toString();
+                Log.d(TAG, "website uri string: " + web_string);
+
+                /*if (Uri.EMPTY.equals(website)) {
+                    button_website.setClickable(false);
+                }*/
 
                     button_website.setOnClickListener(new View.OnClickListener() {
                         @Override
