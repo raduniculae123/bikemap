@@ -280,7 +280,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_recenter.setVisibility(View.GONE);
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
-
                 navYes = true;
                 Log.d(TAG, "navYes true");
 
