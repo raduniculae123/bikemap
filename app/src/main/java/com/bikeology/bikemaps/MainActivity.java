@@ -112,6 +112,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     //PLACE
     private PlaceInfo Place;
     private Place mPlace;
+    boolean isWebsiteValid = true;
 
     //SEARCH BAR
     private PlaceAutocompleteFragment autocompleteFragment;
@@ -506,17 +507,23 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 final Uri website;
                 website = place.getWebsiteUri();
-                String web_string = website.toString();
-                Log.d(TAG, "website uri string: " + web_string);
+                isWebsiteValid = true;
+                try {
+                    String web_string = website.toString();
+                    Log.d(TAG, "website uri string: " + web_string);
+                }
+                catch (NullPointerException e){
+                    Log.d(TAG, "website uri string: null");
+                    isWebsiteValid = false;
 
-                /*if (Uri.EMPTY.equals(website)) {
-                    button_website.setClickable(false);
-                }*/
+                }
 
                     button_website.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            startActivity(new Intent(Intent.ACTION_VIEW, website));
+                            if(isWebsiteValid){
+                                startActivity(new Intent(Intent.ACTION_VIEW, website));
+                            }
                         }
                     });
                     button_phone.setOnClickListener(new View.OnClickListener() {
