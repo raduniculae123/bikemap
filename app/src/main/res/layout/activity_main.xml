@@ -67,12 +67,12 @@
 
         <Button
             android:id="@+id/button_recenter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginBottom="8dp"
-            android:text="@string/button_recenter"
+            android:background="@drawable/location_center"
             app:layout_constraintBottom_toTopOf="@+id/card_info"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -174,7 +174,7 @@
         <android.support.v7.widget.CardView
             android:id="@+id/card_info"
             android:layout_width="0dp"
-            android:layout_height="200dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="8dp"
@@ -252,9 +252,12 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="8dp"
                     android:layout_marginRight="8dp"
+                    android:layout_marginBottom="8dp"
+                    app:layout_constraintBottom_toTopOf="@+id/btn_fastrt"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/text_place_name" />
+                    app:layout_constraintTop_toBottomOf="@+id/text_place_name"
+                    app:layout_constraintVertical_bias="0.0" />
 
                 <Button
                     android:id="@+id/button_website"
@@ -263,10 +266,13 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginLeft="16dp"
                     android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp"
                     android:background="@drawable/rounded_button"
                     android:text="@string/button_website"
+                    app:layout_constraintBottom_toTopOf="@+id/btn_fastrt"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/text_place_address" />
+                    app:layout_constraintTop_toBottomOf="@+id/text_place_address"
+                    app:layout_constraintVertical_bias="0.0" />
 
                 <Button
                     android:id="@+id/button_phone"
@@ -277,11 +283,15 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="8dp"
                     android:layout_marginRight="8dp"
+                    android:layout_marginBottom="16dp"
                     android:background="@drawable/rounded_button"
                     android:text="@string/button_phone"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toTopOf="@+id/btn_fastrt"
                     app:layout_constraintEnd_toStartOf="@+id/ratingBar"
                     app:layout_constraintStart_toEndOf="@+id/button_website"
-                    app:layout_constraintTop_toBottomOf="@+id/text_place_address" />
+                    app:layout_constraintTop_toBottomOf="@+id/text_place_address"
+                    app:layout_constraintVertical_bias="0.0" />
 
                 <RatingBar
                     android:id="@+id/ratingBar"

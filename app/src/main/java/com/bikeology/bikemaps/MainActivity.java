@@ -102,6 +102,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private Marker marker;
     private Polyline mPolyline;
     private Button button_recenter;
+    private LatLngBounds mRouteBounds;
 
 
     //FIREBASE
@@ -149,6 +150,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     //BOOLEANS
     private boolean isRouteCalculated = false;
     private boolean navYes = false;
+    private boolean focusOnMarker = true;
 
     // avg speed calculator
 
@@ -261,6 +263,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 calculateDirections(marker);
                 infoCard.setVisibility(View.GONE);
+                button_recenter.setVisibility(View.GONE);
                 navCard.setVisibility(View.VISIBLE);
                 searchCard.setVisibility(View.GONE);
 
@@ -309,6 +312,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 infoCard.setVisibility(View.VISIBLE);
                 navCard.setVisibility(View.GONE);
+                button_recenter.setVisibility(View.VISIBLE);
 
                 button_nav_yes.setVisibility(View.GONE);
                 button_nav_cancel.setVisibility(View.GONE);
@@ -334,9 +338,26 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             @Override
             public void onClick(View view) {
 
-
+                LatLng focusLatLng;
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
                         mUserLocation.getGeo_point().getLongitude());
+                if(marker != null){
+                    LatLng markerLatLng = marker.getPosition();
+                    if(focusOnMarker){
+                        focusOnMarker = false;
+                        focusLatLng = myLatLng;
+                        button_recenter.setBackgroundResource(R.drawable.marker_center);
+                    }
+                    else{
+                        focusOnMarker = true;
+                        focusLatLng = markerLatLng;
+                        button_recenter.setBackgroundResource(R.drawable.location_center);
+                    }
+
+                }
+                else{
+                    focusLatLng = myLatLng;
+                }
                 if (navYes) {
                     CameraPosition navigationCamera = new CameraPosition.Builder()
                             .target(myLatLng)
@@ -349,7 +370,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 }
                 else {
                     CameraPosition centeredCamera = new CameraPosition.Builder()
-                            .target(myLatLng)
+                            .target(focusLatLng)
                             .zoom(DEFAULT_ZOOM)
                             .bearing(0)
                             .tilt(0)
@@ -469,7 +490,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             @Override
             public void onPlaceSelected(Place place) {
 
-                // TODO: Get info about the selected place.
                 googleMap.clear();
                 mPlace = place;
                 Log.i(TAG, "Place: " + mPlace.getName());
@@ -489,23 +509,31 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 isRouteCalculated = false;
                 infoTextName.setText(mPlace.getName());
                 infoTextAddress.setText(mPlace.getAddress());
-                ratingBar.setVisibility(View.VISIBLE);
-                ratingValue.setVisibility(View.VISIBLE);
-                ratingText.setVisibility(View.VISIBLE);
                 if(mPlace.getRating()<0)
                 {
                     ratingBar.setVisibility(View.GONE);
                     ratingValue.setVisibility(View.GONE);
                     ratingText.setVisibility(View.GONE);
+                    button_website.setVisibility(View.GONE);
+                    button_phone.setVisibility(View.GONE);
                 }
-                ratingBar.setRating(mPlace.getRating());
-                ratingValue.setText(String.valueOf(mPlace.getRating()));
-                Log.d(TAG, "rating: " + mPlace.getRating());
+                else{
+                    ratingBar.setVisibility(View.VISIBLE);
+                    ratingValue.setVisibility(View.VISIBLE);
+                    ratingText.setVisibility(View.VISIBLE);
+                    button_website.setVisibility(View.VISIBLE);
+                    button_phone.setVisibility(View.VISIBLE);
+
+                    ratingBar.setRating(mPlace.getRating());
+                    ratingValue.setText(String.valueOf(mPlace.getRating()));
+                    Log.d(TAG, "rating: " + mPlace.getRating());
+
+                }
                 infoCard.setVisibility(View.VISIBLE);
                 button_fastrt.setVisibility(View.VISIBLE);
                 // button_joyrt.setVisibility(View.VISIBLE);
 
-                final Uri website;
+                /*final Uri website;
                 website = place.getWebsiteUri();
                 isWebsiteValid = true;
                 try {
@@ -535,7 +563,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         phoneIntent.setData(Uri.parse("tel:"+phone));
                         startActivity(phoneIntent);
                     }
-                });
+                });*/
 
 
             }
@@ -555,6 +583,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         button_endtrip.setVisibility(View.GONE);
                         googleMap.clear();
                         marker.remove();
+                        marker = null;
+                        button_recenter.setBackgroundResource(R.drawable.location_center);
                         infoTextName.clearComposingText();
                         infoTextAddress.clearComposingText();
                         infoCard.setVisibility(View.GONE);
@@ -667,7 +697,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
                 mPolyline.setColor(-7829368);
                 mPolyline.setClickable(false);
-                zoomRoute(mPolyline.getPoints());
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
+                //zoomRoute(mPolyline.getPoints());
                 calculateRouteProgressBar.setVisibility(View.GONE);
                 button_nav_yes.setVisibility(View.VISIBLE);
                 button_nav_cancel.setVisibility(View.VISIBLE);
@@ -942,6 +973,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         Log.d(TAG, "calculateDirections: calculating directions.");
 
+
         com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
                 marker.getPosition().latitude,
                 marker.getPosition().longitude
@@ -984,6 +1016,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     shrtDst = result.routes[shortestRoute].legs[0].distance.inMeters;
                     Log.i(TAG, "legs = " + result.routes[shortestRoute].legs.length);
                     directionsResult = result.routes[shortestRoute];
+                    mRouteBounds = getRouteBounds(result, shortestRoute);
                     addPolylinesToMap(result, shortestRoute);
                 }
 
@@ -992,9 +1025,38 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             @Override
             public void onFailure(Throwable e) {
                 Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage());
-
+                //TODO
+                //message box
             }
         });
+    }
+
+    public LatLngBounds getRouteBounds (DirectionsResult result, int x){
+        double nMax=mUserLocation.getGeo_point().getLatitude(), eMax=mUserLocation.getGeo_point().getLongitude(),
+                sMax=mUserLocation.getGeo_point().getLatitude(), wMax=mUserLocation.getGeo_point().getLongitude();
+
+        for(int i=0; i<result.routes[x].legs[0].steps.length; i++){
+            double lat = result.routes[x].legs[0].steps[i].endLocation.lat;
+            double lng = result.routes[x].legs[0].steps[i].endLocation.lng;
+            if(lat > nMax){
+                nMax = lat;
+            }
+            if(lat < sMax){
+                sMax = lat;
+            }
+            if(lng > eMax){
+                eMax = lng;
+            }
+            if(lng < wMax){
+                wMax = lng;
+            }
+        }
+        double mapHeight = mMapView.getHeight();
+        double navCardHeight = navCard.getHeight();
+        double perc = navCardHeight/mapHeight;
+        double s = sMax - perc*1.1*(nMax-sMax);
+        LatLngBounds routeBounds = new LatLngBounds(new LatLng(s, wMax), new LatLng(nMax, eMax));
+        return routeBounds;
     }
 
     @Override
