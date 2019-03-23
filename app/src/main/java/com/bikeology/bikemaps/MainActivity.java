@@ -268,7 +268,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 navText.setText("Navigate to " + mPlace.getName() + "?");
                 isRouteCalculated = true;
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
+              //  googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
 
 
             }
@@ -469,8 +469,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         .build();
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(povCamera));
                 Log.i(TAG, "bearing=" + mUserLocation.getBearing());
-                mPolyline.setVisible(false);
-                calculateDirections(marker);
+
+
 
 
             }
@@ -701,7 +701,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
                 mPolyline.setColor(-7829368);
                 mPolyline.setClickable(false);
-              //  googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
+               googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
                 calculateRouteProgressBar.setVisibility(View.GONE);
                 button_nav_yes.setVisibility(View.VISIBLE);
                 button_nav_cancel.setVisibility(View.VISIBLE);
