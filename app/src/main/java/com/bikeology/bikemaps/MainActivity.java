@@ -101,6 +101,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     public static GoogleMap googleMap;
     private Marker marker;
     private Polyline mPolyline;
+    private Polyline m1Polyline;
     private Button button_recenter;
     private LatLngBounds mRouteBounds;
 
@@ -145,6 +146,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     //NAVIGATION MODE
     private BroadcastReceiver locationReceiver;
     private Button button_endtrip;
+    private TextView avgSpeedTxt;
+    private TextView durationTxt;
 
     //BOOLEANS
     private boolean isRouteCalculated = false;
@@ -225,7 +228,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         calculateRouteProgressBar.setVisibility(View.GONE);
         //------------------------------------------
 
-        // recenter buttona
+        // recenter button
         button_recenter = findViewById(R.id.button_recenter);
 
         // end trip button
@@ -236,6 +239,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         durationTextView = findViewById(R.id.durationTextView);
         durationTextView.setVisibility(View.GONE);
 
+        // avg speed textview
+        avgSpeedTxt = findViewById(R.id.average_speed1);
+        avgSpeedTxt.setVisibility(View.GONE);
+
+        // duration textview
+        durationTxt = findViewById(R.id.durationTextView1);
+        durationTxt.setVisibility(View.GONE);
 
 
         // delay of 2 seconds at onCreate
@@ -261,6 +271,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 calculateRouteProgressBar.setVisibility(View.VISIBLE);
 
                 calculateDirections(marker);
+
                 infoCard.setVisibility(View.GONE);
                 button_recenter.setVisibility(View.GONE);
                 navCard.setVisibility(View.VISIBLE);
@@ -281,6 +292,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         button_nav_yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                avgSpeedTxt.setText("Average speed: " +Long.toString(mUserLocation.getAvgSpeed()) + " km/h");
+                avgSpeedTxt.setVisibility(View.VISIBLE);
+                durationTxt.setText(Long.toString(durationLong) + " minutes left");
+                durationTxt.setVisibility(View.VISIBLE);
                 button_endtrip.setVisibility(View.VISIBLE);
                 button_recenter.setVisibility(View.GONE);
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
@@ -471,6 +486,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 Log.i(TAG, "bearing=" + mUserLocation.getBearing());
 
 
+                calculateDirections1(marker);
+                mPolyline.setVisible(false);
+                calculateDirections2(marker);
+                m1Polyline.setVisible(false);
 
 
             }
@@ -609,44 +628,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     }
 
-    private int getCurrentStep(Location location) {
-        double perpDst = 99999999;
-        int iStep=0;
-        Log.d(TAG, "update camera valid : " + location);
-        for(int i=0; i < directionsResult.legs[0].steps.length;i++){
-            double lat1 = directionsResult.legs[0].steps[i].startLocation.lat; // point A from leg lat
-            double lon1 = directionsResult.legs[0].steps[i].startLocation.lng;  // point A from leg lng
 
-            double lat2 = directionsResult.legs[0].steps[i].endLocation.lat;   // point B from leg lat
-            double lon2 = directionsResult.legs[0].steps[i].endLocation.lng;   // point B from leg lng
-
-            double lat3 = mUserLocation.getGeo_point().getLatitude();
-            double lon3 = mUserLocation.getGeo_point().getLongitude();
-
-            double y = sin(lon3 - lon1) * cos(lat3);
-            double x = cos(lat1) * sin(lat3) - sin(lat1) * cos(lat3) * cos(lat3 - lat1);
-            double bearing1 = Math.toDegrees(atan2(y, x));
-            bearing1 = 360 - ((bearing1 + 360) % 360);
-
-
-            double y2 = sin(lon2 - lon1) * cos(lat2);
-            double x2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lat2 - lat1);
-            double bearing2 = Math.toDegrees(atan2(y2, x2));
-            bearing2 = 360 - ((bearing2 + 360) % 360);
-
-            double lat1Rads = Math.toRadians(lat1);
-            double lat3Rads = Math.toRadians(lat3);
-            double dLon = Math.toRadians(lon3 - lon1);
-
-            double distanceAC = acos(sin(lat1Rads) * sin(lat3Rads)+cos(lat1Rads)*cos(lat3Rads)*cos(dLon)) * 6371;
-            double minDst = Math.abs(asin(sin(distanceAC/6371)*sin(Math.toRadians(bearing1)-Math.toRadians(bearing2))) * 6371);
-            if(minDst < perpDst ){
-                perpDst = minDst;
-                iStep = i;
-            }
-        }
-        return iStep;
-    }
 
     private double getStepBearing(int i){
         double lat1 = Math.toRadians(directionsResult.legs[0].steps[i].startLocation.lat); // point A from leg lat
@@ -701,6 +683,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
                 mPolyline.setColor(-7829368);
                 mPolyline.setClickable(false);
+
+                m1Polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                m1Polyline.setColor(-7829368);
+                m1Polyline.setClickable(false);
+
                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
                 calculateRouteProgressBar.setVisibility(View.GONE);
                 button_nav_yes.setVisibility(View.VISIBLE);
@@ -718,6 +705,94 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_fastrt.setVisibility(View.GONE);
                 button_joyrt.setVisibility(View.GONE);
 
+
+            }
+        });
+    }
+
+
+    private void addPolylinesToMap1(final DirectionsResult result, final int shortestRoute) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: result routes: " + result.routes.length);
+
+                if (shortestRoute == -1) {
+                    // Log error
+                    return;
+                }
+                DirectionsRoute route = result.routes[shortestRoute];
+                //for(DirectionsRoute route: result.routes){
+                Log.d(TAG, "run: leg: " + route.legs[0].toString());
+                List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
+
+                List<LatLng> newDecodedPath = new ArrayList<>();
+
+                // This loops through all the LatLng coordinates of ONE polyline.
+                for (com.google.maps.model.LatLng latLng : decodedPath) {
+
+//                        Log.d(TAG, "run: latlng: " + latLng.toString());
+
+                    newDecodedPath.add(new LatLng(
+                            latLng.lat,
+                            latLng.lng
+                    ));
+                }
+
+
+                m1Polyline.setVisible(true);
+                m1Polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                m1Polyline.setColor(Color.rgb(2, 113, 102));
+                m1Polyline.setWidth(30);
+                m1Polyline.setClickable(false);
+
+                durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
+
+                Log.d(TAG, "shrtDst: " + shrtDst);
+                Log.d(TAG, "avgSpeed: " + mUserLocation.getAvgSpeed());
+
+            }
+        });
+    }
+
+    private void addPolylinesToMap2(final DirectionsResult result, final int shortestRoute) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: result routes: " + result.routes.length);
+
+                if (shortestRoute == -1) {
+                    // Log error
+                    return;
+                }
+                DirectionsRoute route = result.routes[shortestRoute];
+                //for(DirectionsRoute route: result.routes){
+                Log.d(TAG, "run: leg: " + route.legs[0].toString());
+                List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
+
+                List<LatLng> newDecodedPath = new ArrayList<>();
+
+                // This loops through all the LatLng coordinates of ONE polyline.
+                for (com.google.maps.model.LatLng latLng : decodedPath) {
+
+//                        Log.d(TAG, "run: latlng: " + latLng.toString());
+
+                    newDecodedPath.add(new LatLng(
+                            latLng.lat,
+                            latLng.lng
+                    ));
+                }
+
+                mPolyline.setVisible(true);
+                mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                mPolyline.setColor(Color.rgb(2, 113, 102));
+                mPolyline.setWidth(30);
+                mPolyline.setClickable(false);
+
+                durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
+
+                Log.d(TAG, "shrtDst: " + shrtDst);
+                Log.d(TAG, "avgSpeed: " + mUserLocation.getAvgSpeed());
 
             }
         });
@@ -839,7 +914,44 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }
         return true;
     }
+    private int getCurrentStep(Location location) {
+        double perpDst = 99999999;
+        int iStep=0;
+        Log.d(TAG, "update camera valid : " + location);
+        for(int i=0; i < directionsResult.legs[0].steps.length;i++){
+            double lat1 = directionsResult.legs[0].steps[i].startLocation.lat; // point A from leg lat
+            double lon1 = directionsResult.legs[0].steps[i].startLocation.lng;  // point A from leg lng
 
+            double lat2 = directionsResult.legs[0].steps[i].endLocation.lat;   // point B from leg lat
+            double lon2 = directionsResult.legs[0].steps[i].endLocation.lng;   // point B from leg lng
+
+            double lat3 = mUserLocation.getGeo_point().getLatitude();
+            double lon3 = mUserLocation.getGeo_point().getLongitude();
+
+            double y = sin(lon3 - lon1) * cos(lat3);
+            double x = cos(lat1) * sin(lat3) - sin(lat1) * cos(lat3) * cos(lat3 - lat1);
+            double bearing1 = Math.toDegrees(atan2(y, x));
+            bearing1 = 360 - ((bearing1 + 360) % 360);
+
+
+            double y2 = sin(lon2 - lon1) * cos(lat2);
+            double x2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lat2 - lat1);
+            double bearing2 = Math.toDegrees(atan2(y2, x2));
+            bearing2 = 360 - ((bearing2 + 360) % 360);
+
+            double lat1Rads = Math.toRadians(lat1);
+            double lat3Rads = Math.toRadians(lat3);
+            double dLon = Math.toRadians(lon3 - lon1);
+
+            double distanceAC = acos(sin(lat1Rads) * sin(lat3Rads)+cos(lat1Rads)*cos(lat3Rads)*cos(dLon)) * 6371;
+            double minDst = Math.abs(asin(sin(distanceAC/6371)*sin(Math.toRadians(bearing1)-Math.toRadians(bearing2))) * 6371);
+            if(minDst < perpDst ){
+                perpDst = minDst;
+                iStep = i;
+            }
+        }
+        return iStep;
+    }
     private void getLocationPermission() {
         /*
          * Request location permission, so that we can get the location of the
@@ -1021,6 +1133,132 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     directionsResult = result.routes[shortestRoute];
                     mRouteBounds = getRouteBounds(result, shortestRoute);
                     addPolylinesToMap(result, shortestRoute);
+                }
+
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage());
+                //TODO
+                //message box
+            }
+        });
+    }
+
+
+
+    private void calculateDirections1(Marker marker) {
+
+        Log.d(TAG, "calculateDirections: calculating directions.");
+
+
+        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+                marker.getPosition().latitude,
+                marker.getPosition().longitude
+        );
+        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
+
+        directions.alternatives(true);
+        directions.origin(
+                new com.google.maps.model.LatLng(
+                        mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude()
+                )
+        );
+        Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+        directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
+            @Override
+            public void onResult(DirectionsResult result) {
+                int shortestRoute = -1;
+                long shortestDistance = -1;
+                for (int i = 0; i < result.routes.length; i++) {
+                    long routeDistance = 0;
+                    for (int j = 0; j < result.routes[i].legs.length; j++) {
+                        routeDistance += result.routes[i].legs[j].distance.inMeters;
+                    }
+                    if (shortestRoute == -1 || routeDistance < shortestDistance) {
+                        shortestRoute = i;
+                        shortestDistance = routeDistance;
+                    }
+                }
+                Log.d(TAG, "shortestRoute: " + shortestRoute);
+                Log.d(TAG, "route length: " + result.routes.length);
+                if (shortestRoute == -1) {
+                    // no routes
+                } else {
+                    Log.d(TAG, "calculateDirections: routes: " + result.routes[shortestRoute].toString());
+                    Log.d(TAG, "calculateDirections: duration: " + result.routes[shortestRoute].legs[0].duration);
+                    Log.d(TAG, "calculateDirections: distance: " + result.routes[shortestRoute].legs[0].distance);
+                    //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
+
+                    shrtDst = result.routes[shortestRoute].legs[0].distance.inMeters;
+                    Log.i(TAG, "legs = " + result.routes[shortestRoute].legs.length);
+                    directionsResult = result.routes[shortestRoute];
+                    mRouteBounds = getRouteBounds(result, shortestRoute);
+                    addPolylinesToMap1(result, shortestRoute);
+                }
+
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage());
+                //TODO
+                //message box
+            }
+        });
+    }
+
+    private void calculateDirections2(Marker marker) {
+
+        Log.d(TAG, "calculateDirections: calculating directions.");
+
+
+        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+                marker.getPosition().latitude,
+                marker.getPosition().longitude
+        );
+        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
+
+        directions.alternatives(true);
+        directions.origin(
+                new com.google.maps.model.LatLng(
+                        mUserLocation.getGeo_point().getLatitude(),
+                        mUserLocation.getGeo_point().getLongitude()
+                )
+        );
+        Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+        directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
+            @Override
+            public void onResult(DirectionsResult result) {
+                int shortestRoute = -1;
+                long shortestDistance = -1;
+                for (int i = 0; i < result.routes.length; i++) {
+                    long routeDistance = 0;
+                    for (int j = 0; j < result.routes[i].legs.length; j++) {
+                        routeDistance += result.routes[i].legs[j].distance.inMeters;
+                    }
+                    if (shortestRoute == -1 || routeDistance < shortestDistance) {
+                        shortestRoute = i;
+                        shortestDistance = routeDistance;
+                    }
+                }
+                Log.d(TAG, "shortestRoute: " + shortestRoute);
+                Log.d(TAG, "route length: " + result.routes.length);
+                if (shortestRoute == -1) {
+                    // no routes
+                } else {
+                    Log.d(TAG, "calculateDirections: routes: " + result.routes[shortestRoute].toString());
+                    Log.d(TAG, "calculateDirections: duration: " + result.routes[shortestRoute].legs[0].duration);
+                    Log.d(TAG, "calculateDirections: distance: " + result.routes[shortestRoute].legs[0].distance);
+                    //Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[shortestRoute].toString());
+
+                    shrtDst = result.routes[shortestRoute].legs[0].distance.inMeters;
+                    Log.i(TAG, "legs = " + result.routes[shortestRoute].legs.length);
+                    directionsResult = result.routes[shortestRoute];
+                    mRouteBounds = getRouteBounds(result, shortestRoute);
+                    addPolylinesToMap2(result, shortestRoute);
                 }
 
             }

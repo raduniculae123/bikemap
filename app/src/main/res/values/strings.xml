@@ -6,13 +6,14 @@
     <string name="open">Open</string>
     <string name="close">Close</string>
     <string name="endtrip">End trip</string>
+
     <string name="nav_map">Map</string>
     <string name="nav_my_account">My Account</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_logout">Log Out</string>
     <string name="nav_header_title">Navigation header</string>
     <string name="button_recenter"></string>
-
+    <string name="durationTextView1">Duration</string>
     <string name="durationTextView">Duration</string>
     <!--Info Card-->
     <string name="fastride">Calculate route</string>
@@ -66,6 +67,7 @@
 
     <string name="total_distance">Total distance:</string>
     <string name="average_speed">Average speed:</string>
+    <string name="average_speed1">Average speed:</string>
 
 
     <string name="collection_user_locations">User Locations</string>
