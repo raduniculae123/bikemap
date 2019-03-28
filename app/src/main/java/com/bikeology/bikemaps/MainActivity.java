@@ -995,8 +995,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 long shortestDistance = -1;
                 for (int i = 0; i < result.routes.length; i++) {
                     long routeDistance = 0;
-                    for (int j = 0; j < result.routes[i].legs.length; j++) {
-                        routeDistance += result.routes[i].legs[j].distance.inMeters;
+                    for (int j = 0; j < result.routes[i].legs[0].steps.length; j++) {
+                        routeDistance += result.routes[i].legs[0].steps[j].distance.inMeters;
                     }
                     if (shortestRoute == -1 || routeDistance < shortestDistance) {
                         shortestRoute = i;

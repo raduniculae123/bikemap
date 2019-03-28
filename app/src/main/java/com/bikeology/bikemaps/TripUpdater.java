@@ -111,7 +111,7 @@ public class TripUpdater {
                                 if(refreshInterval == 50) {
                                     stopCurrentTrip();
                                 }
-
+                                userTrips.setAvgSpeed((userTrips.getAvgSpeed() + avgSpeed)/2);
                                 tripsRef.set(userTrips);
                             }
                         }

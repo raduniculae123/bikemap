@@ -2,12 +2,12 @@ package com.bikeology.bikemaps;
 
 public class UserTrips {
 
-    private long avgSpeed;
+    private double avgSpeed;
     private double totalDistance;
     private String userEmail;
 
 
-    public UserTrips(long avgSpeed, long totalDistance, String userEmail) {
+    public UserTrips(double avgSpeed, double totalDistance, String userEmail) {
         this.avgSpeed = avgSpeed;
         this.totalDistance = totalDistance;
         this.userEmail = userEmail;
@@ -17,11 +17,11 @@ public class UserTrips {
 
     }
 
-    public long getAvgSpeed() {
+    public double getAvgSpeed() {
         return avgSpeed;
     }
 
-    public void setAvgSpeed(long avgSpeed) {
+    public void setAvgSpeed(double avgSpeed) {
         this.avgSpeed = avgSpeed;
     }
 
