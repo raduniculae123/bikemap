@@ -148,11 +148,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private Button button_endtrip;
     private TextView avgSpeedTxt;
     private TextView durationTxt;
+    private int currentStep = -1;
 
     //BOOLEANS
     private boolean isRouteCalculated = false;
     private boolean navYes = false;
     private boolean focusOnMarker = true;
+    private boolean refreshRoute = false;
+
 
     // avg speed calculator
 
@@ -168,6 +171,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private long startTime;
     private long endTime;
     private long tripSpeed;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -269,14 +273,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             @Override
             public void onClick(View view) {
                 calculateRouteProgressBar.setVisibility(View.VISIBLE);
-
-                calculateDirections(marker);
-
+                refreshRoute = true;
                 infoCard.setVisibility(View.GONE);
                 button_recenter.setVisibility(View.GONE);
                 navCard.setVisibility(View.VISIBLE);
                 searchCard.setVisibility(View.GONE);
-
                 navText.setText("Navigate to " + mPlace.getName() + "?");
                 isRouteCalculated = true;
               //  googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
@@ -463,13 +464,29 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         locationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+
+                Log.d(TAG, "refreshRoute: " + refreshRoute);
+                if(refreshRoute){
+                    calculateDirections(marker);
+                    refreshRoute = false;
+                }
+
                 if(!navYes)
                     return;
                 Location location = intent.getExtras().getParcelable("location");
                 LatLng myLatLng = new LatLng(location.getLatitude(),
                         location.getLongitude());
+                StepInfo step = StepInfo.getCurrentStep(location, directionsResult, mUserLocation);
+                double brng = step.getBearing();
 
-                double brng = getStepBearing(getCurrentStep(location));
+                if(currentStep != -1 && currentStep != step.getStep()){
+                    refreshRoute = true;
+                }
+                if(step.getDistance() >= 1000){
+                    refreshRoute = true;
+                }
+                currentStep = step.getStep();
+
 
                 mUserLocation.setBearing((float)brng);
 
@@ -486,10 +503,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 Log.i(TAG, "bearing=" + mUserLocation.getBearing());
 
 
-                calculateDirections1(marker);
+                /*calculateDirections1(marker);
                 mPolyline.setVisible(false);
                 calculateDirections2(marker);
-                m1Polyline.setVisible(false);
+                m1Polyline.setVisible(false);*/
 
 
             }
@@ -627,31 +644,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 });
 
     }
-
-
-
-    private double getStepBearing(int i){
-        double lat1 = Math.toRadians(directionsResult.legs[0].steps[i].startLocation.lat); // point A from leg lat
-        double lon1 = Math.toRadians(directionsResult.legs[0].steps[i].startLocation.lng);  // point A from leg lng
-
-        double lat2 = Math.toRadians(directionsResult.legs[0].steps[i].endLocation.lat);   // point B from leg lat
-        double lon2 = Math.toRadians(directionsResult.legs[0].steps[i].endLocation.lng);   // point B from leg lng
-
-        Log.i(TAG, "lat1: " + lat1);
-        Log.i(TAG, "lat2: " + lat2);
-        Log.i(TAG, "long1: " + lon1);
-        Log.i(TAG, "long2: " + lon2);
-
-        //where	φ is latitude, λ is longitude
-
-        double y = Math.sin(lon2 - lon1) * Math.cos(lat2);
-        double x = Math.cos(lat1) * Math.sin(lat2) -
-                Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
-        double brng = Math.toDegrees(atan2(y, x));
-        Log.i(TAG, "step bearing: " + brng);
-        return brng;
-    }
-
 
     private void addPolylinesToMap(final DirectionsResult result, final int shortestRoute) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -914,44 +906,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }
         return true;
     }
-    private int getCurrentStep(Location location) {
-        double perpDst = 99999999;
-        int iStep=0;
-        Log.d(TAG, "update camera valid : " + location);
-        for(int i=0; i < directionsResult.legs[0].steps.length;i++){
-            double lat1 = directionsResult.legs[0].steps[i].startLocation.lat; // point A from leg lat
-            double lon1 = directionsResult.legs[0].steps[i].startLocation.lng;  // point A from leg lng
-
-            double lat2 = directionsResult.legs[0].steps[i].endLocation.lat;   // point B from leg lat
-            double lon2 = directionsResult.legs[0].steps[i].endLocation.lng;   // point B from leg lng
-
-            double lat3 = mUserLocation.getGeo_point().getLatitude();
-            double lon3 = mUserLocation.getGeo_point().getLongitude();
-
-            double y = sin(lon3 - lon1) * cos(lat3);
-            double x = cos(lat1) * sin(lat3) - sin(lat1) * cos(lat3) * cos(lat3 - lat1);
-            double bearing1 = Math.toDegrees(atan2(y, x));
-            bearing1 = 360 - ((bearing1 + 360) % 360);
-
-
-            double y2 = sin(lon2 - lon1) * cos(lat2);
-            double x2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lat2 - lat1);
-            double bearing2 = Math.toDegrees(atan2(y2, x2));
-            bearing2 = 360 - ((bearing2 + 360) % 360);
-
-            double lat1Rads = Math.toRadians(lat1);
-            double lat3Rads = Math.toRadians(lat3);
-            double dLon = Math.toRadians(lon3 - lon1);
-
-            double distanceAC = acos(sin(lat1Rads) * sin(lat3Rads)+cos(lat1Rads)*cos(lat3Rads)*cos(dLon)) * 6371;
-            double minDst = Math.abs(asin(sin(distanceAC/6371)*sin(Math.toRadians(bearing1)-Math.toRadians(bearing2))) * 6371);
-            if(minDst < perpDst ){
-                perpDst = minDst;
-                iStep = i;
-            }
-        }
-        return iStep;
-    }
     private void getLocationPermission() {
         /*
          * Request location permission, so that we can get the location of the
@@ -1106,6 +1060,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
             @Override
             public void onResult(DirectionsResult result) {
+                Log.d(TAG, "calculateDirections:onResult 1");
+
                 int shortestRoute = -1;
                 long shortestDistance = -1;
                 for (int i = 0; i < result.routes.length; i++) {
@@ -1118,6 +1074,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         shortestDistance = routeDistance;
                     }
                 }
+                Log.d(TAG, "calculateDirections:onResult 2");
+
                 Log.d(TAG, "shortestRoute: " + shortestRoute);
                 Log.d(TAG, "route length: " + result.routes.length);
                 if (shortestRoute == -1) {
@@ -1132,6 +1090,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     Log.i(TAG, "legs = " + result.routes[shortestRoute].legs.length);
                     directionsResult = result.routes[shortestRoute];
                     mRouteBounds = getRouteBounds(result, shortestRoute);
+
                     addPolylinesToMap(result, shortestRoute);
                 }
 

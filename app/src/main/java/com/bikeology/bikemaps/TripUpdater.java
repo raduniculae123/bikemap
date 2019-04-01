@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -15,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.lang.Math;
+import java.text.DecimalFormat;
 
 
 import static android.support.constraint.Constraints.TAG;
@@ -26,7 +28,6 @@ public class TripUpdater {
 
     private GeoPoint oldLocation;
 
-    private int refreshInterval = 0;
     private int stopInterval = 0;
     private int moveInterval = 0;
 
@@ -88,51 +89,71 @@ public class TripUpdater {
                             }
                             else {
                                 GeoPoint newLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
-                                refreshInterval ++;
-                                    double d = calculateDistance(oldLocation, newLocation);
-                                    if(isUserMoving){
-                                        stopInterval = 0;
-                                        if(moveInterval == 0)
-                                        {
-                                            startTime = System.currentTimeMillis()/1000;
-                                        }
-                                        moveInterval ++;
-                                        userTrips.setTotalDistance(userTrips.getTotalDistance() + d);
-                                        intermediateDistance += d;
-                                    }
-                                    else{
-                                        if(moveInterval>20){
-                                            stopInterval ++;
-                                        }
-                                        if(stopInterval == 5){
-                                            stopCurrentTrip();
-                                        }
-                                    }
-                                if(refreshInterval == 50) {
-                                    stopCurrentTrip();
+                                double d = calculateDistance(oldLocation, newLocation);
+                                double acc = location.getAccuracy();
+                                if(acc == 0.0){
+                                    acc = minimumRefreshDistance;
                                 }
-                                userTrips.setAvgSpeed((userTrips.getAvgSpeed() + avgSpeed)/2);
-                                tripsRef.set(userTrips);
+                                else{
+                                    acc /= 1000;
+                                }
+                                if(d > acc && !isUserMoving)
+                                {
+                                    isUserMoving = true;
+                                }
+
+                                if(d <= acc && isUserMoving){
+                                    stopInterval++;
+                                    if(stopInterval == 5){
+                                        isUserMoving = false;
+                                        stopCurrentTrip();
+                                    }
+                                }
+
+                                if(isUserMoving) {
+                                    stopInterval = 0;
+                                    if (moveInterval == 0) {
+                                        startTime = System.currentTimeMillis() / 1000;
+                                    }
+                                    moveInterval++;
+                                    userTrips.setTotalDistance(userTrips.getTotalDistance() + d);
+                                    intermediateDistance += d;
+                                    oldLocation = newLocation;
+                                    if (moveInterval % 50 == 0) {
+                                        updateAverageSpeed();
+                                        startTime = System.currentTimeMillis() / 1000;
+                                    }
+                                    tripsRef.set(userTrips);
+                                }
+                                DecimalFormat df2 = new DecimalFormat(".####");
+                                Log.d(TAG, "moving: " + isUserMoving + " d=" + df2.format(d) + "m: " + moveInterval + "s: " + stopInterval + "acc: " + df2.format(acc));
+                                Toast.makeText(context.getApplicationContext(), "moving: " +
+                                        isUserMoving + " d=" +
+                                        df2.format(d) + " m: " +
+                                        moveInterval + " s: " +
+                                        stopInterval + " acc: " +
+                                        df2.format(acc), Toast.LENGTH_LONG).show();
                             }
                         }
                         return;
                     }
 
-                } else {
                 }
             }
         });
     }
 
     private void stopCurrentTrip() {
-        refreshInterval = 0;
+        updateAverageSpeed();
+        intermediateDistance = 0;
+        moveInterval = 0;
+    }
+
+    private void updateAverageSpeed() {
         endTime = System.currentTimeMillis()/1000;
         tripTime = endTime - startTime;
         avgSpeed = (intermediateDistance*1000)/(tripTime*3600);
-        intermediateDistance = 0;
-        stopInterval = 0;
-        moveInterval = 0;
-
+        userTrips.setAvgSpeed((userTrips.getAvgSpeed() + avgSpeed)/2);
     }
 
     private double calculateDistance(GeoPoint oldLocation, GeoPoint newLocation){
@@ -154,10 +175,6 @@ public class TripUpdater {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         double d = R * c;
 
-        if(d > minimumRefreshDistance)
-        {
-            isUserMoving = true;
-        }
         return d;
 
     }
