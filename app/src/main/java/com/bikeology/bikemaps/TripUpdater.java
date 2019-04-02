@@ -116,7 +116,6 @@ public class TripUpdater {
                                         startTime = System.currentTimeMillis() / 1000;
                                     }
                                     moveInterval++;
-                                    userTrips.setTotalDistance(userTrips.getTotalDistance() + d);
                                     intermediateDistance += d;
                                     oldLocation = newLocation;
                                     if (moveInterval % 50 == 0) {
@@ -153,7 +152,15 @@ public class TripUpdater {
         endTime = System.currentTimeMillis()/1000;
         tripTime = endTime - startTime;
         avgSpeed = (intermediateDistance*1000)/(tripTime*3600);
-        userTrips.setAvgSpeed((userTrips.getAvgSpeed() + avgSpeed)/2);
+        if(avgSpeed>=5 && avgSpeed<=50)
+        {
+            userTrips.setAvgSpeed((userTrips.getAvgSpeed() + avgSpeed)/2);
+            updateTotalDistance();
+        }
+    }
+
+    private void updateTotalDistance() {
+        userTrips.setTotalDistance(userTrips.getTotalDistance() + intermediateDistance);
     }
 
     private double calculateDistance(GeoPoint oldLocation, GeoPoint newLocation){
