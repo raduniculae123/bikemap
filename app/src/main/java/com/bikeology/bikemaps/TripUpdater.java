@@ -91,8 +91,8 @@ public class TripUpdater {
                                 GeoPoint newLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
                                 double d = calculateDistance(oldLocation, newLocation);
                                 double acc = location.getAccuracy();
-                                if(acc == 0.0){
-                                    acc = minimumRefreshDistance;
+                                if(acc < 0.0001){
+                                    acc = 0.0001;
                                 }
                                 else{
                                     acc /= 1000;
@@ -106,12 +106,12 @@ public class TripUpdater {
                                     stopInterval++;
                                     if(stopInterval == 5){
                                         isUserMoving = false;
+                                        stopInterval = 0;
                                         stopCurrentTrip();
                                     }
                                 }
 
                                 if(isUserMoving) {
-                                    stopInterval = 0;
                                     if (moveInterval == 0) {
                                         startTime = System.currentTimeMillis() / 1000;
                                     }
@@ -126,7 +126,7 @@ public class TripUpdater {
                                     tripsRef.set(userTrips);
                                 }
                                 DecimalFormat df2 = new DecimalFormat(".####");
-                                Log.d(TAG, "moving: " + isUserMoving + " d=" + df2.format(d) + "m: " + moveInterval + "s: " + stopInterval + "acc: " + df2.format(acc));
+                                Log.d(TAG, "moving: " + isUserMoving + " d=" + d + "m: " + moveInterval + "s: " + stopInterval + "acc: " + acc);
                                 Toast.makeText(context.getApplicationContext(), "moving: " +
                                         isUserMoving + " d=" +
                                         df2.format(d) + " m: " +

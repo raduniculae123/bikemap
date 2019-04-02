@@ -1,6 +1,5 @@
 package com.bikeology.bikemaps;
 
-import java.lang.Math;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -15,19 +14,16 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -69,19 +65,12 @@ import com.google.maps.model.DirectionsRoute;
 
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
 import static com.bikeology.bikemaps.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.bikeology.bikemaps.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
-import static java.lang.Math.acos;
-import static java.lang.Math.asin;
-import static java.lang.Math.atan2;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
@@ -100,7 +89,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private MapView mMapView;
     public static GoogleMap googleMap;
     private Marker marker;
-    private Polyline mPolyline;
+    private Polyline mOldPolyline;
+    private Polyline mNewPolyline;
     private Polyline m1Polyline;
     private Button button_recenter;
     private LatLngBounds mRouteBounds;
@@ -306,8 +296,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 startTime = System.currentTimeMillis()/1000;
 
-                mPolyline.setColor(Color.rgb(2, 113, 102));
-                mPolyline.setWidth(30);
+                mNewPolyline.setColor(Color.rgb(2, 113, 102));
+                mNewPolyline.setWidth(30);
 
                 navCard.setVisibility(View.GONE);
                 searchCard.setVisibility(View.GONE);
@@ -504,7 +494,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
 
                 /*calculateDirections1(marker);
-                mPolyline.setVisible(false);
+                mOldPolyline.setVisible(false);
                 calculateDirections2(marker);
                 m1Polyline.setVisible(false);*/
 
@@ -547,6 +537,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 marker = googleMap.addMarker(options);
                 googleMap.addMarker(options);
                 isRouteCalculated = false;
+                mOldPolyline = null;
+                mNewPolyline = null;
                 infoTextName.setText(mPlace.getName());
                 infoTextAddress.setText(mPlace.getAddress());
                 if(mPlace.getRating()<0)
@@ -672,15 +664,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                             latLng.lng
                     ));
                 }
-                mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                mPolyline.setColor(-7829368);
-                mPolyline.setClickable(false);
+                mOldPolyline = mNewPolyline;
+                mNewPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                mNewPolyline.setColor(-7829368);
+                mNewPolyline.setClickable(false);
+                if(mOldPolyline != null){
+                    mOldPolyline.setVisible(false);
+                }
 
-                m1Polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                m1Polyline.setColor(-7829368);
-                m1Polyline.setClickable(false);
+                //m1Polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                //m1Polyline.setColor(-7829368);
+                //m1Polyline.setClickable(false);
 
-               googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
                 calculateRouteProgressBar.setVisibility(View.GONE);
                 button_nav_yes.setVisibility(View.VISIBLE);
                 button_nav_cancel.setVisibility(View.VISIBLE);
@@ -775,11 +771,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     ));
                 }
 
-                mPolyline.setVisible(true);
-                mPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                mPolyline.setColor(Color.rgb(2, 113, 102));
-                mPolyline.setWidth(30);
-                mPolyline.setClickable(false);
+                mNewPolyline.setVisible(true);
+                mNewPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                mNewPolyline.setColor(Color.rgb(2, 113, 102));
+                mNewPolyline.setWidth(30);
+                mNewPolyline.setClickable(false);
 
                 durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
 
