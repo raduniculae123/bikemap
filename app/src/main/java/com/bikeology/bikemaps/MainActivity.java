@@ -693,12 +693,66 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_fastrt.setVisibility(View.GONE);
                 button_joyrt.setVisibility(View.GONE);
 
+                if(shrtDst<200)
+                {
+                    infoCard.setVisibility(View.VISIBLE);
+                    navCard.setVisibility(View.GONE);
+                    durationTextView.setVisibility(View.GONE);
+                    searchCard.setVisibility(View.VISIBLE);
+                    navText.clearComposingText();
+                    durationTextView.setVisibility(View.GONE);
+                    googleMap.clear();
+                    mUserLocation.setBearing(0);
+                    LatLng latLng = mPlace.getLatLng();
+                    CameraPosition centeredCamera = new CameraPosition.Builder()
+                            .target(latLng)
+                            .zoom(DEFAULT_ZOOM)
+                            .bearing(mUserLocation.getBearing())
+                            .tilt(0)
+                            .build();
+
+                    googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
+
+                    endTime = System.currentTimeMillis()/1000;
+                    tripDuration = (endTime - startTime);
+
+                    Log.d(TAG, "aaatrip duration" + tripDuration);
+
+                    Log.d(TAG, "aaashrtdst" + shrtDst);
+
+                    tripSpeed=(shrtDst*1000)/(tripDuration*3600);
+
+
+                    Log.d(TAG, "aaatrip speed" + tripSpeed);
+
+                    Log.d(TAG, "aaaavgspd speed" + mUserLocation.getAvgSpeed());
+                    mUserLocation.setAvgSpeed((mUserLocation.getAvgSpeed()+tripSpeed)/2);
+
+                    //UPLOAD FIREBASE AVGSPEED
+
+                    Log.d(TAG, "aaasetavgspd" + (mUserLocation.getAvgSpeed()+tripSpeed)/2);
+
+
+                    MarkerOptions options = new MarkerOptions()
+                            .position(latLng)
+                            .title(mPlace.getName().toString());
+                    marker = googleMap.addMarker(options);
+                    googleMap.addMarker(options);
+                    button_fastrt.setVisibility(View.VISIBLE);
+                    button_endtrip.setVisibility(View.GONE);
+                    button_recenter.setVisibility(View.VISIBLE);
+                    durationTextView.setVisibility(View.GONE);
+                    isRouteCalculated = false;
+                    navYes = false;
+
+                }
+
 
             }
         });
     }
 
-
+/*
     private void addPolylinesToMap1(final DirectionsResult result, final int shortestRoute) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
@@ -734,11 +788,65 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 m1Polyline.setWidth(30);
                 m1Polyline.setClickable(false);
 
-                durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
+                durationLong = shrtDst / ((mUserLocation.getAvgSpeed() * 1000) / 60);
 
                 Log.d(TAG, "shrtDst: " + shrtDst);
                 Log.d(TAG, "avgSpeed: " + mUserLocation.getAvgSpeed());
 
+
+                if (shrtDst < 2000) {
+                    infoCard.setVisibility(View.VISIBLE);
+                    navCard.setVisibility(View.GONE);
+                    durationTextView.setVisibility(View.GONE);
+                    searchCard.setVisibility(View.VISIBLE);
+                    navText.clearComposingText();
+                    durationTextView.setVisibility(View.GONE);
+                    googleMap.clear();
+                    mUserLocation.setBearing(0);
+                    LatLng latLng = mPlace.getLatLng();
+                    CameraPosition centeredCamera = new CameraPosition.Builder()
+                            .target(latLng)
+                            .zoom(DEFAULT_ZOOM)
+                            .bearing(mUserLocation.getBearing())
+                            .tilt(0)
+                            .build();
+
+                    googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
+
+                    endTime = System.currentTimeMillis() / 1000;
+                    tripDuration = (endTime - startTime);
+
+                    Log.d(TAG, "aaatrip duration" + tripDuration);
+
+                    Log.d(TAG, "aaashrtdst" + shrtDst);
+
+                    tripSpeed = (shrtDst * 1000) / (tripDuration * 3600);
+
+
+                    Log.d(TAG, "aaatrip speed" + tripSpeed);
+
+                    Log.d(TAG, "aaaavgspd speed" + mUserLocation.getAvgSpeed());
+                    mUserLocation.setAvgSpeed((mUserLocation.getAvgSpeed() + tripSpeed) / 2);
+
+                    //UPLOAD FIREBASE AVGSPEED
+
+                    Log.d(TAG, "aaasetavgspd" + (mUserLocation.getAvgSpeed() + tripSpeed) / 2);
+
+
+                    MarkerOptions options = new MarkerOptions()
+                            .position(latLng)
+                            .title(mPlace.getName().toString());
+                    marker = googleMap.addMarker(options);
+                    googleMap.addMarker(options);
+                    button_fastrt.setVisibility(View.VISIBLE);
+                    button_endtrip.setVisibility(View.GONE);
+                    button_recenter.setVisibility(View.VISIBLE);
+                    durationTextView.setVisibility(View.GONE);
+                    isRouteCalculated = false;
+                    navYes = false;
+
+
+                }
             }
         });
     }
@@ -782,10 +890,65 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 Log.d(TAG, "shrtDst: " + shrtDst);
                 Log.d(TAG, "avgSpeed: " + mUserLocation.getAvgSpeed());
 
+                if(shrtDst<2000)
+                {
+                    infoCard.setVisibility(View.VISIBLE);
+                    navCard.setVisibility(View.GONE);
+                    durationTextView.setVisibility(View.GONE);
+                    searchCard.setVisibility(View.VISIBLE);
+                    navText.clearComposingText();
+                    durationTextView.setVisibility(View.GONE);
+                    googleMap.clear();
+                    mUserLocation.setBearing(0);
+                    LatLng latLng = mPlace.getLatLng();
+                    CameraPosition centeredCamera = new CameraPosition.Builder()
+                            .target(latLng)
+                            .zoom(DEFAULT_ZOOM)
+                            .bearing(mUserLocation.getBearing())
+                            .tilt(0)
+                            .build();
+
+                    googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(centeredCamera));
+
+                    endTime = System.currentTimeMillis()/1000;
+                    tripDuration = (endTime - startTime);
+
+                    Log.d(TAG, "aaatrip duration" + tripDuration);
+
+                    Log.d(TAG, "aaashrtdst" + shrtDst);
+
+                    tripSpeed=(shrtDst*1000)/(tripDuration*3600);
+
+
+                    Log.d(TAG, "aaatrip speed" + tripSpeed);
+
+                    Log.d(TAG, "aaaavgspd speed" + mUserLocation.getAvgSpeed());
+                    mUserLocation.setAvgSpeed((mUserLocation.getAvgSpeed()+tripSpeed)/2);
+
+                    //UPLOAD FIREBASE AVGSPEED
+
+                    Log.d(TAG, "aaasetavgspd" + (mUserLocation.getAvgSpeed()+tripSpeed)/2);
+
+
+                    MarkerOptions options = new MarkerOptions()
+                            .position(latLng)
+                            .title(mPlace.getName().toString());
+                    marker = googleMap.addMarker(options);
+                    googleMap.addMarker(options);
+                    button_fastrt.setVisibility(View.VISIBLE);
+                    button_endtrip.setVisibility(View.GONE);
+                    button_recenter.setVisibility(View.VISIBLE);
+                    durationTextView.setVisibility(View.GONE);
+                    isRouteCalculated = false;
+                    navYes = false;
+
+                }
+
             }
         });
     }
 
+*/
 
     private void saveUserLocation() {
 
@@ -1103,7 +1266,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
 
 
-    private void calculateDirections1(Marker marker) {
+    /*private void calculateDirections1(Marker marker) {
 
         Log.d(TAG, "calculateDirections: calculating directions.");
 
@@ -1155,6 +1318,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 }
 
             }
+
 
             @Override
             public void onFailure(Throwable e) {
@@ -1226,7 +1390,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         });
     }
-
+*/
     public LatLngBounds getRouteBounds (DirectionsResult result, int x){
         double nMax=mUserLocation.getGeo_point().getLatitude(), eMax=mUserLocation.getGeo_point().getLongitude(),
                 sMax=mUserLocation.getGeo_point().getLatitude(), wMax=mUserLocation.getGeo_point().getLongitude();
