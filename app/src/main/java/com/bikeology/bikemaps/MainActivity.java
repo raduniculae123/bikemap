@@ -466,6 +466,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 Location location = intent.getExtras().getParcelable("location");
                 LatLng myLatLng = new LatLng(location.getLatitude(),
                         location.getLongitude());
+                GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                mUserLocation.setGeo_point(geoPoint);
                 StepInfo step = StepInfo.getCurrentStep(location, directionsResult, mUserLocation);
                 double brng = step.getBearing();
 
