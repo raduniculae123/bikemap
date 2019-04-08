@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
@@ -54,6 +55,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
@@ -124,6 +126,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private Button button_phone;
 
     //NAV CARD
+    private ConstraintLayout navCardLayout;
     private CardView navCard;
     private RatingBar ratingBar;
     private TextView navText;
@@ -150,7 +153,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     // avg speed calculator
 
     private long durationLong;
-    private long shrtDst;
+    private double shrtDst;
+    private TextView distanceTextView;
     private TextView durationTextView;
     private long tripDuration;
 
@@ -206,6 +210,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         navCard = findViewById(R.id.card_navigate);
         navCard.setVisibility(View.GONE);
 
+        navCardLayout = findViewById(R.id.navCardLayout);
+
         // nav text
         navText = findViewById(R.id.text_nav_to);
         navText.setVisibility(View.GONE);
@@ -228,6 +234,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         // end trip button
         button_endtrip = findViewById(R.id.endtrip);
         button_endtrip.setVisibility(View.GONE);
+
+        //trip distance
+        distanceTextView = findViewById(R.id.distanceTextView);
+        distanceTextView.setVisibility(View.GONE);
 
         // trip duration
         durationTextView = findViewById(R.id.durationTextView);
@@ -326,6 +336,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_nav_cancel.setVisibility(View.GONE);
                 searchCard.setVisibility(View.VISIBLE);
                 navText.clearComposingText();
+                navText.setVisibility(View.GONE);
+                distanceTextView.setVisibility(View.GONE);
                 durationTextView.setVisibility(View.GONE);
                 googleMap.clear();
                 LatLng latLng = mPlace.getLatLng();
@@ -399,10 +411,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 infoCard.setVisibility(View.VISIBLE);
                 navCard.setVisibility(View.GONE);
+                distanceTextView.setVisibility(View.GONE);
                 durationTextView.setVisibility(View.GONE);
                 searchCard.setVisibility(View.VISIBLE);
                 navText.clearComposingText();
-                durationTextView.setVisibility(View.GONE);
                 googleMap.clear();
                 mUserLocation.setBearing(0);
                 LatLng latLng = mPlace.getLatLng();
@@ -422,7 +434,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 Log.d(TAG, "aaashrtdst" + shrtDst);
 
-                tripSpeed=(shrtDst*1000)/(tripDuration*3600);
+                tripSpeed=(long)(shrtDst*1000)/(tripDuration*3600);
 
 
                 Log.d(TAG, "aaatrip speed" + tripSpeed);
@@ -443,6 +455,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 button_fastrt.setVisibility(View.VISIBLE);
                 button_endtrip.setVisibility(View.GONE);
                 button_recenter.setVisibility(View.VISIBLE);
+                distanceTextView.setVisibility(View.GONE);
                 durationTextView.setVisibility(View.GONE);
                 isRouteCalculated = false;
                 navYes = false;
@@ -482,8 +495,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 mUserLocation.setBearing((float)brng);
 
-                durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
-                durationTextView.setText("Trip duration: " + durationLong + " minutes");
+                durationLong = (long)shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
+                distanceTextView.setText("Trip distance: " + String.format("%.2f",shrtDst/1000) + " km");
+                int hours = 0;
+                while(durationLong > 60){
+                    hours++;
+                    durationLong -= 60;
+                }
+                if(hours > 0){
+                    durationTextView.setText("Trip duration: " + hours + "h" + durationLong + " minutes");
+                }
+                else {
+                    durationTextView.setText("Trip duration: " + durationLong + " minutes");
+                }
 
                 CameraPosition povCamera = new CameraPosition.Builder()
                         .target(myLatLng)
@@ -678,31 +702,64 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 //m1Polyline.setColor(-7829368);
                 //m1Polyline.setClickable(false);
 
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
-                calculateRouteProgressBar.setVisibility(View.GONE);
-                button_nav_yes.setVisibility(View.VISIBLE);
-                button_nav_cancel.setVisibility(View.VISIBLE);
-                navText.setVisibility(View.VISIBLE);
 
-                durationLong = shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
-                durationTextView.setText("Trip duration: " + durationLong + " minutes");
-                durationTextView.setVisibility(View.VISIBLE);
-                durationTextView.bringToFront();
+                final DocumentReference tripsRef = FirebaseFirestore.getInstance()
+                        .collection(getString(R.string.collection_user_trips))
+                        .document(FirebaseAuth.getInstance().getUid());
+                tripsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document != null) {
+                                calculateRouteProgressBar.setVisibility(View.GONE);
+                                button_nav_yes.setVisibility(View.VISIBLE);
+                                button_nav_cancel.setVisibility(View.VISIBLE);
+                                navText.setVisibility(View.VISIBLE);
 
+                                mUserTrips = document.toObject(UserTrips.class);
+                                durationLong = (long)shrtDst/(long)((mUserTrips.getAvgSpeed()*1000)/60);
+                                distanceTextView.setText("Trip distance: " + shrtDst/1000 + " km");
+                                distanceTextView.setVisibility(View.VISIBLE);
+                                distanceTextView.bringToFront();
+
+                                int hours = 0;
+                                while(durationLong > 60){
+                                    hours++;
+                                    durationLong -= 60;
+                                }
+                                if(hours > 0){
+                                    durationTextView.setText("Trip duration: " + hours + "h" + durationLong + " minutes");
+                                }
+                                else {
+                                    durationTextView.setText("Trip duration: " + durationLong + " minutes");
+                                }                                durationTextView.setVisibility(View.VISIBLE);
+                                durationTextView.bringToFront();
+                                mRouteBounds = getRouteBounds(result, shortestRoute);
+                                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mRouteBounds, 100));
+
+
+                                button_fastrt.setVisibility(View.GONE);
+                                button_joyrt.setVisibility(View.GONE);
+
+
+                            }
+                        }
+                    }
+
+                });
                 Log.d(TAG, "shrtDst: " + shrtDst);
                 Log.d(TAG, "avgSpeed: " + mUserLocation.getAvgSpeed());
 
-                button_fastrt.setVisibility(View.GONE);
-                button_joyrt.setVisibility(View.GONE);
 
                 if(shrtDst<200)
                 {
                     infoCard.setVisibility(View.VISIBLE);
                     navCard.setVisibility(View.GONE);
                     durationTextView.setVisibility(View.GONE);
+                    distanceTextView.setVisibility(View.GONE);
                     searchCard.setVisibility(View.VISIBLE);
                     navText.clearComposingText();
-                    durationTextView.setVisibility(View.GONE);
                     googleMap.clear();
                     mUserLocation.setBearing(0);
                     LatLng latLng = mPlace.getLatLng();
@@ -722,7 +779,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                     Log.d(TAG, "aaashrtdst" + shrtDst);
 
-                    tripSpeed=(shrtDst*1000)/(tripDuration*3600);
+                    tripSpeed=(long)(shrtDst*1000)/(tripDuration*3600);
 
 
                     Log.d(TAG, "aaatrip speed" + tripSpeed);
@@ -744,6 +801,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     button_endtrip.setVisibility(View.GONE);
                     button_recenter.setVisibility(View.VISIBLE);
                     durationTextView.setVisibility(View.GONE);
+                    distanceTextView.setVisibility(View.GONE);
                     isRouteCalculated = false;
                     navYes = false;
 
@@ -1250,7 +1308,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     shrtDst = result.routes[shortestRoute].legs[0].distance.inMeters;
                     Log.i(TAG, "legs = " + result.routes[shortestRoute].legs.length);
                     directionsResult = result.routes[shortestRoute];
-                    mRouteBounds = getRouteBounds(result, shortestRoute);
 
                     addPolylinesToMap(result, shortestRoute);
                 }
@@ -1414,10 +1471,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         }
         double mapHeight = mMapView.getHeight();
-        double navCardHeight = navCard.getHeight();
+        navCard.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        //double navCardHeight = navCardLayout.getHeight();
+        double navCardHeight = navCard.getMeasuredHeight();
+        Log.d(TAG, "nav Height: " + navCardHeight);
+        Log.d(TAG, "map Height: " + mapHeight);
+
         double perc = navCardHeight/mapHeight;
-        double s = sMax - perc*1.1*(nMax-sMax);
-        LatLngBounds routeBounds = new LatLngBounds(new LatLng(s, wMax), new LatLng(nMax, eMax));
+        double s = sMax - perc*1.5*(nMax-sMax);
+        double n = nMax + perc*0.1*(nMax-sMax);
+        LatLngBounds routeBounds = new LatLngBounds(new LatLng(s, wMax), new LatLng(n, eMax));
         return routeBounds;
     }
 

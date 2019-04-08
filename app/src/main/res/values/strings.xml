@@ -25,6 +25,7 @@
     <string name="ratingValue">5</string>
     <!--Navigate Card-->
     <string name="durationView">Duration</string>
+    <string name="distanceView">Distance</string>
 
     <string name="button_nav_yes">Yes</string>
     <string name="button_nav_cancel">Cancel</string>
