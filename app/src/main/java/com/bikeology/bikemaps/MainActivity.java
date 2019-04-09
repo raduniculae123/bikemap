@@ -1472,7 +1472,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         }
         double mapHeight = mMapView.getHeight();
         navCard.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        //double navCardHeight = navCardLayout.getHeight();
         double navCardHeight = navCard.getMeasuredHeight();
         Log.d(TAG, "nav Height: " + navCardHeight);
         Log.d(TAG, "map Height: " + mapHeight);
