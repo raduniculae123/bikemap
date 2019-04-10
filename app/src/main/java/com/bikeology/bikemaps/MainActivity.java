@@ -159,7 +159,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private long tripDuration;
 
     // leg info
-    DirectionsRoute directionsResult;
+    DirectionsResult directionsResult;
+    int resultShortestRoute;
 
     //avg speed updater
     private long startTime;
@@ -481,7 +482,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         location.getLongitude());
                 GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                 mUserLocation.setGeo_point(geoPoint);
-                StepInfo step = StepInfo.getCurrentStep(location, directionsResult, mUserLocation);
+                StepInfo step = StepInfo.getCurrentStep(location, directionsResult.routes[resultShortestRoute], mUserLocation);
                 double brng = step.getBearing();
 
                 if(currentStep != -1 && currentStep != step.getStep()){
@@ -690,18 +691,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                             latLng.lng
                     ));
                 }
-                mOldPolyline = mNewPolyline;
                 mNewPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
                 mNewPolyline.setColor(-7829368);
                 mNewPolyline.setClickable(false);
-                if(mOldPolyline != null){
-                    mOldPolyline.setVisible(false);
-                }
-
-                //m1Polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                //m1Polyline.setColor(-7829368);
-                //m1Polyline.setClickable(false);
-
 
                 final DocumentReference tripsRef = FirebaseFirestore.getInstance()
                         .collection(getString(R.string.collection_user_trips))
@@ -812,8 +804,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         });
     }
 
-/*
-    private void addPolylinesToMap1(final DirectionsResult result, final int shortestRoute) {
+
+    private void refreshPolylinesToMap(final DirectionsResult result, final int shortestRoute) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
@@ -841,20 +833,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     ));
                 }
 
+                mOldPolyline = mNewPolyline;
+                mNewPolyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                mNewPolyline.setColor(Color.rgb(2, 113, 102));
+                mNewPolyline.setWidth(30);
+                mNewPolyline.setClickable(false);
+                if(mOldPolyline != null){
+                    mOldPolyline.setVisible(false);
+                }
 
-                m1Polyline.setVisible(true);
-                m1Polyline = googleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                m1Polyline.setColor(Color.rgb(2, 113, 102));
-                m1Polyline.setWidth(30);
-                m1Polyline.setClickable(false);
-
-                durationLong = shrtDst / ((mUserLocation.getAvgSpeed() * 1000) / 60);
-
-                Log.d(TAG, "shrtDst: " + shrtDst);
-                Log.d(TAG, "avgSpeed: " + mUserLocation.getAvgSpeed());
-
-
-                if (shrtDst < 2000) {
+                if (shrtDst < 200) {
                     infoCard.setVisibility(View.VISIBLE);
                     navCard.setVisibility(View.GONE);
                     durationTextView.setVisibility(View.GONE);
@@ -875,24 +863,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                     endTime = System.currentTimeMillis() / 1000;
                     tripDuration = (endTime - startTime);
-
-                    Log.d(TAG, "aaatrip duration" + tripDuration);
-
-                    Log.d(TAG, "aaashrtdst" + shrtDst);
-
-                    tripSpeed = (shrtDst * 1000) / (tripDuration * 3600);
-
-
-                    Log.d(TAG, "aaatrip speed" + tripSpeed);
-
-                    Log.d(TAG, "aaaavgspd speed" + mUserLocation.getAvgSpeed());
-                    mUserLocation.setAvgSpeed((mUserLocation.getAvgSpeed() + tripSpeed) / 2);
-
-                    //UPLOAD FIREBASE AVGSPEED
-
-                    Log.d(TAG, "aaasetavgspd" + (mUserLocation.getAvgSpeed() + tripSpeed) / 2);
-
-
                     MarkerOptions options = new MarkerOptions()
                             .position(latLng)
                             .title(mPlace.getName().toString());
@@ -910,6 +880,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             }
         });
     }
+    /*
 
     private void addPolylinesToMap2(final DirectionsResult result, final int shortestRoute) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -1266,7 +1237,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 marker.getPosition().latitude,
                 marker.getPosition().longitude
         );
-        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
+        final DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
 
         directions.alternatives(true);
         directions.origin(
@@ -1307,9 +1278,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                     shrtDst = result.routes[shortestRoute].legs[0].distance.inMeters;
                     Log.i(TAG, "legs = " + result.routes[shortestRoute].legs.length);
-                    directionsResult = result.routes[shortestRoute];
-
-                    addPolylinesToMap(result, shortestRoute);
+                    //directionsResult = result.routes[shortestRoute];
+                    directionsResult = result;
+                    resultShortestRoute = shortestRoute;
+                    if(!navYes){
+                        addPolylinesToMap(directionsResult, resultShortestRoute);
+                    }
+                    else
+                    {
+                        refreshPolylinesToMap(directionsResult, resultShortestRoute);
+                    }
                 }
 
             }
