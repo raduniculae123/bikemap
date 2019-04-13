@@ -66,7 +66,10 @@ import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static com.bikeology.bikemaps.Constants.ERROR_DIALOG_REQUEST;
@@ -137,6 +140,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private ProgressBar calculateRouteProgressBar;
 
     //NAVIGATION MODE
+    private CardView etaCard;
     private BroadcastReceiver locationReceiver;
     private Button button_endtrip;
     private TextView avgSpeedTxt;
@@ -166,6 +170,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private long startTime;
     private long endTime;
     private long tripSpeed;
+
+    //DEBUG
+    private TextView debugText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -232,6 +239,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         // recenter button
         button_recenter = findViewById(R.id.button_recenter);
 
+        // eta card
+        etaCard = findViewById(R.id.card_eta);
         // end trip button
         button_endtrip = findViewById(R.id.endtrip);
         button_endtrip.setVisibility(View.GONE);
@@ -251,6 +260,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         // duration textview
         durationTxt = findViewById(R.id.durationTextView1);
         durationTxt.setVisibility(View.GONE);
+
+        //DEBUG
+        debugText = findViewById(R.id.debugText);
 
 
         // delay of 2 seconds at onCreate
@@ -294,10 +306,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         button_nav_yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                avgSpeedTxt.setText("Average speed: " +Long.toString(mUserLocation.getAvgSpeed()) + " km/h");
-                avgSpeedTxt.setVisibility(View.VISIBLE);
-                durationTxt.setText(Long.toString(durationLong) + " minutes left");
-                durationTxt.setVisibility(View.VISIBLE);
+                etaCard.setVisibility(View.VISIBLE);
                 button_endtrip.setVisibility(View.VISIBLE);
                 button_recenter.setVisibility(View.GONE);
                 LatLng myLatLng = new LatLng(mUserLocation.getGeo_point().getLatitude(),
@@ -454,6 +463,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 marker = googleMap.addMarker(options);
                 googleMap.addMarker(options);
                 button_fastrt.setVisibility(View.VISIBLE);
+                etaCard.setVisibility(View.VISIBLE);
                 button_endtrip.setVisibility(View.GONE);
                 button_recenter.setVisibility(View.VISIBLE);
                 distanceTextView.setVisibility(View.GONE);
@@ -488,15 +498,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 if(currentStep != -1 && currentStep != step.getStep()){
                     refreshRoute = true;
                 }
-                if(step.getDistance() >= 1000){
+                if(step.getDistance() >= 50){
                     refreshRoute = true;
                 }
                 currentStep = step.getStep();
-
+                debugText.setText("Current step: " + currentStep);
 
                 mUserLocation.setBearing((float)brng);
 
-                durationLong = (long)shrtDst/((mUserLocation.getAvgSpeed()*1000)/60);
+                durationLong = (long)shrtDst/(((long)mUserTrips.getAvgSpeed()*1000)/60);
                 distanceTextView.setText("Trip distance: " + String.format("%.2f",shrtDst/1000) + " km");
                 int hours = 0;
                 while(durationLong > 60){
@@ -509,6 +519,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 else {
                     durationTextView.setText("Trip duration: " + durationLong + " minutes");
                 }
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+                Date eta = new Date();
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(eta);
+                calendar.add(Calendar.MINUTE, (int)durationLong);
+
+                avgSpeedTxt.setText("Average speed \n" +mUserTrips.getAvgSpeed() + " km/h");
+                avgSpeedTxt.setVisibility(View.VISIBLE);
+                durationTxt.setText("ETA \n" + sdf.format(calendar.getTime()));
+                durationTxt.setVisibility(View.VISIBLE);
 
                 CameraPosition povCamera = new CameraPosition.Builder()
                         .target(myLatLng)
@@ -639,6 +659,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        etaCard.setVisibility(View.GONE);
                         button_endtrip.setVisibility(View.GONE);
                         googleMap.clear();
                         marker.remove();
@@ -790,6 +811,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     marker = googleMap.addMarker(options);
                     googleMap.addMarker(options);
                     button_fastrt.setVisibility(View.VISIBLE);
+                    etaCard.setVisibility(View.GONE);
                     button_endtrip.setVisibility(View.GONE);
                     button_recenter.setVisibility(View.VISIBLE);
                     durationTextView.setVisibility(View.GONE);
@@ -869,6 +891,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     marker = googleMap.addMarker(options);
                     googleMap.addMarker(options);
                     button_fastrt.setVisibility(View.VISIBLE);
+                    etaCard.setVisibility(View.GONE);
                     button_endtrip.setVisibility(View.GONE);
                     button_recenter.setVisibility(View.VISIBLE);
                     durationTextView.setVisibility(View.GONE);

@@ -126,12 +126,12 @@ public class TripUpdater {
                                 }
                                 DecimalFormat df2 = new DecimalFormat(".####");
                                 Log.d(TAG, "moving: " + isUserMoving + " d=" + d + "m: " + moveInterval + "s: " + stopInterval + "acc: " + acc);
-                                Toast.makeText(context.getApplicationContext(), "moving: " +
+                                /*Toast.makeText(context.getApplicationContext(), "moving: " +
                                         isUserMoving + " d=" +
                                         df2.format(d) + " m: " +
                                         moveInterval + " s: " +
                                         stopInterval + " acc: " +
-                                        df2.format(acc), Toast.LENGTH_LONG).show();
+                                        df2.format(acc), Toast.LENGTH_LONG).show();*/
                             }
                         }
                         return;
