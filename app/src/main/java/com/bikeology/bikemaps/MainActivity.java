@@ -525,7 +525,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 calendar.setTime(eta);
                 calendar.add(Calendar.MINUTE, (int)durationLong);
 
-                avgSpeedTxt.setText("Average speed \n" +mUserTrips.getAvgSpeed() + " km/h");
+
+                avgSpeedTxt.setText(String.format("%.0f", mUserTrips.getAvgSpeed()) + " km/h");
                 avgSpeedTxt.setVisibility(View.VISIBLE);
                 durationTxt.setText("ETA \n" + sdf.format(calendar.getTime()));
                 durationTxt.setVisibility(View.VISIBLE);

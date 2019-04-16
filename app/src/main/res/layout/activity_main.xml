@@ -29,6 +29,7 @@
             android:id="@+id/card_eta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:autoSizeTextType="uniform"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="8dp"
@@ -43,27 +44,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <Button
-                    android:id="@+id/endtrip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginRight="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/rounded_button"
-                    android:text="@string/endtrip"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
                 <TextView
                     android:id="@+id/durationTextView1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginStart="8dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginTop="8dp"
@@ -80,10 +65,30 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <Button
+                    android:id="@+id/endtrip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginRight="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/rounded_button"
+                    android:text="@string/endtrip"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/durationTextView1"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
                 <TextView
                     android:id="@+id/average_speed1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginStart="8dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginTop="8dp"
@@ -158,6 +163,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <Button
+                    android:id="@+id/button_nav_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
+                    android:layout_marginEnd="32dp"
+                    android:layout_marginRight="32dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/rounded_button"
+                    android:bottomLeftRadius="10dp"
+                    android:bottomRightRadius="10dp"
+                    android:text="@string/button_nav_cancel"
+                    android:topLeftRadius="10dp"
+                    android:topRightRadius="10dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
 
                 <ProgressBar
                     android:id="@+id/calculateRoutePregressBar"
@@ -191,26 +214,13 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
 
-                <Button
-                    android:id="@+id/button_nav_cancel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="32dp"
-                    android:layout_marginRight="32dp"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/rounded_button"
-                    android:bottomLeftRadius="10dp"
-                    android:bottomRightRadius="10dp"
-                    android:text="@string/button_nav_cancel"
-                    android:topLeftRadius="10dp"
-                    android:topRightRadius="10dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+
 
                 <TextView
                     android:id="@+id/text_nav_to"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginStart="8dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginTop="8dp"
@@ -226,6 +236,7 @@
                     android:id="@+id/durationTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginStart="8dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginBottom="8dp"
@@ -238,6 +249,7 @@
                     android:id="@+id/distanceTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginStart="8dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginBottom="8dp"
@@ -273,6 +285,7 @@
                     android:id="@+id/btn_fastrt"
                     android:layout_width="200dp"
                     android:layout_height="40dp"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginStart="8dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginEnd="8dp"
@@ -310,6 +323,7 @@
                     android:id="@+id/text_place_name"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginStart="8dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginTop="8dp"
@@ -326,6 +340,7 @@
                     android:id="@+id/text_place_address"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginStart="8dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginTop="8dp"
@@ -390,6 +405,7 @@
                     android:id="@+id/ratingText"
                     android:layout_width="wrap_content"
                     android:layout_height="22dp"
+
                     android:text="@string/rating"
                     android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     app:layout_constraintBottom_toTopOf="@+id/ratingBar"
@@ -398,8 +414,10 @@
 
                 <TextView
                     android:id="@+id/ratingValue"
+
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="20dp"
                     android:layout_marginRight="20dp"
@@ -419,6 +437,7 @@
             android:id="@+id/debugText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:autoSizeTextType="uniform"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="24dp"

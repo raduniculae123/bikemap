@@ -57,8 +57,8 @@ public class AccountActivity extends BaseActivity {
         email = findViewById(R.id.userEmail);
         fullName = findViewById(R.id.fullNameText);
 
-        totalDistance = findViewById(R.id.totalDistanceValue);
-        averageSpeed = findViewById(R.id.averageSpeedValue);
+        totalDistance = findViewById(R.id.totalDistanceText);
+        averageSpeed = findViewById(R.id.averageSpeedText);
 
         //get current user
        //final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -152,8 +152,8 @@ public class AccountActivity extends BaseActivity {
                     if (document != null) {
                         UserTrips userTrips  = document.toObject(UserTrips.class);
                         if(userTrips != null){
-                            totalDistance.setText(String.format("%.2f", userTrips.getTotalDistance()) + " km");
-                            averageSpeed.setText(String.format("%.0f", userTrips.getAvgSpeed()) + " km/h");
+                            totalDistance.setText("Total distance: " + String.format("%.2f", userTrips.getTotalDistance()) + " km");
+                            averageSpeed.setText("Average speed: " + String.format("%.0f", userTrips.getAvgSpeed()) + " km/h");
                         }
                         return;
                     }
